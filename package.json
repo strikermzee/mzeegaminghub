@@ -1,0 +1,19 @@
+{
+  "name": "mzee-gaming-zone",
+  "version": "1.0.0",
+  "description": "MZEE Gaming Zone - Play Unlimited Free Games",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["gaming", "games", "online-games", "free-games"],
+  "author": "MZEE Gaming",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

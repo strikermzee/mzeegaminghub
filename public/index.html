@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MZeeGamingHub - Play Unlimited Free Games</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00f0ff;
+            --secondary: #ff00e5;
+            --accent: #39ff14;
+            --warning: #ffae00;
+            --danger: #ff4d4d;
+            --dark-1: #0a0a0f;
+            --dark-2: #12121a;
+            --dark-3: #1a1a25;
+            --dark-4: #252535;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --glow-primary: 0 0 20px rgba(0, 240, 255, 0.5);
+            --glow-secondary: 0 0 20px rgba(255, 0, 229, 0.5);
+            --glow-accent: 0 0 20px rgba(57, 255, 20, 0.5);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--dark-1);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .bg-animation {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+        }
+        .bg-animation::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at 20% 80%, rgba(0, 240, 255, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255, 0, 229, 0.08) 0%, transparent 50%);
+            animation: bgMove 20s ease-in-out infinite;
+        }
+        @keyframes bgMove { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(2%, 2%); } }
+
+        .grid-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
+            background-size: 50px 50px; z-index: -1; pointer-events: none;
+        }
+
+        header {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            background: rgba(10, 10, 15, 0.9); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border); padding: 0 2rem;
+        }
+        .header-content {
+            max-width: 1600px; margin: 0 auto; display: flex; align-items: center;
+            justify-content: space-between; height: 70px;
+        }
+        .logo { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .logo-icon {
+            width: 50px; height: 50px; background: linear-gradient(135deg, #00d4ff, #a855f7, #ec4899);
+            border-radius: 14px; display: flex; align-items: center; justify-content: center;
+            font-family: 'Caveat', cursive; font-size: 15px; font-weight: 700; color: #1a1a2e;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.3);
+        }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: var(--glow-primary); } 50% { box-shadow: var(--glow-secondary); } }
+        .logo-text {
+            font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 1.5rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: gradient-shift 3s ease infinite;
+        }
+        @keyframes gradient-shift { 0%, 100% { background-position: 0% center; } 50% { background-position: 100% center; } }
+        .logo-tagline { font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 3px; }
+
+        .search-container { flex: 1; max-width: 500px; margin: 0 2rem; }
+        .search-box { position: relative; width: 100%; }
+        .search-box input {
+            width: 100%; padding: 12px 20px 12px 50px; background: var(--glass);
+            border: 1px solid var(--glass-border); border-radius: 50px;
+            color: var(--text-primary); font-family: 'Rajdhani', sans-serif; font-size: 1rem;
+        }
+        .search-box input:focus { outline: none; border-color: var(--primary); box-shadow: var(--glow-primary); }
+        .search-box i { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); }
+
+        .header-actions { display: flex; align-items: center; gap: 1rem; }
+        .icon-btn {
+            width: 45px; height: 45px; border-radius: 12px; background: var(--glass);
+            border: 1px solid var(--glass-border); color: var(--text-secondary); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;
+        }
+        .icon-btn:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
+
+        .btn {
+            padding: 12px 28px; border-radius: 50px; font-family: 'Orbitron', sans-serif;
+            font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease;
+            border: none; text-transform: uppercase; letter-spacing: 1px; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: var(--dark-1); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--glow-primary), var(--glow-secondary); }
+        .btn-secondary { background: linear-gradient(135deg, var(--secondary), #9d4edd); color: white; }
+        .btn-accent { background: linear-gradient(135deg, var(--accent), #00ff88); color: var(--dark-1); }
+        .btn-warning { background: linear-gradient(135deg, var(--warning), #ff8800); color: var(--dark-1); }
+        .btn-sm { padding: 8px 16px; font-size: 0.8rem; }
+
+        main { margin-top: 70px; padding: 2rem; max-width: 1600px; margin-left: auto; margin-right: auto; }
+
+        .hero {
+            position: relative; padding: 4rem 3rem; background: linear-gradient(135deg, var(--dark-2), var(--dark-3));
+            border-radius: 24px; margin-bottom: 3rem; overflow: hidden; border: 1px solid var(--glass-border);
+        }
+        .hero-content { position: relative; z-index: 2; }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
+            background: rgba(0, 240, 255, 0.1); border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 50px; font-size: 0.85rem; color: var(--primary); margin-bottom: 1.5rem;
+        }
+        .hero h1 { font-family: 'Orbitron', sans-serif; font-size: 3.5rem; font-weight: 900; margin-bottom: 1rem; }
+        .hero h1 span { background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 1.25rem; color: var(--text-secondary); max-width: 600px; margin-bottom: 2rem; }
+        .hero-stats { display: flex; gap: 3rem; margin-top: 2rem; flex-wrap: wrap; }
+        .stat { text-align: center; }
+        .stat-value { font-family: 'Orbitron', sans-serif; font-size: 2.5rem; font-weight: 800; color: var(--primary); }
+        .stat-label { font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; }
+
+        .features-strip {
+            display: flex; justify-content: center; flex-wrap: wrap; gap: 2rem; padding: 1.5rem;
+            background: var(--glass); border: 1px solid var(--glass-border); border-radius: 16px; margin-bottom: 3rem;
+        }
+        .feature-item { display: flex; align-items: center; gap: 10px; color: var(--text-secondary); }
+        .feature-item i { color: var(--accent); font-size: 1.2rem; }
+
+        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+        .section-title { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 12px; }
+        .section-title i { color: var(--primary); }
+
+        .categories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+        .category-card {
+            padding: 1.5rem 1rem; background: var(--glass); border: 1px solid var(--glass-border);
+            border-radius: 16px; text-align: center; cursor: pointer; transition: all 0.3s ease;
+        }
+        .category-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .category-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .category-name { font-weight: 600; }
+        .category-count { font-size: 0.8rem; color: var(--text-secondary); }
+
+        .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+        .game-card {
+            background: var(--dark-2); border-radius: 20px; overflow: hidden;
+            border: 1px solid var(--glass-border); cursor: pointer; transition: all 0.4s ease;
+        }
+        .game-card:hover { transform: translateY(-8px); border-color: var(--primary); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), var(--glow-primary); }
+        .game-card.featured { grid-column: span 2; }
+        .game-thumbnail { position: relative; width: 100%; padding-top: 60%; background: var(--dark-3); }
+        .game-thumbnail img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        .game-badges { position: absolute; top: 12px; left: 12px; display: flex; gap: 8px; }
+        .game-badge { padding: 5px 12px; border-radius: 50px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+        .badge-hot { background: linear-gradient(135deg, #ff4d4d, #ff0080); color: white; }
+        .badge-new { background: linear-gradient(135deg, var(--accent), #00ff88); color: var(--dark-1); }
+        .badge-featured { background: linear-gradient(135deg, var(--warning), #ff6b00); color: var(--dark-1); }
+        .play-overlay { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; }
+        .game-card:hover .play-overlay { opacity: 1; }
+        .play-btn { width: 70px; height: 70px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--dark-1); }
+        .game-info { padding: 1rem 1.25rem; }
+        .game-title { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .game-meta { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-secondary); }
+
+        /* ADMIN QUICK ACTION BUTTONS */
+        .admin-quick-actions {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;
+        }
+        .quick-action-btn {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 2rem; background: var(--glass); border: 2px solid var(--glass-border);
+            border-radius: 20px; cursor: pointer; transition: all 0.3s ease; text-decoration: none; color: inherit;
+        }
+        .quick-action-btn:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .quick-action-btn.categories { border-color: var(--secondary); }
+        .quick-action-btn.categories:hover { box-shadow: var(--glow-secondary); background: rgba(255, 0, 229, 0.1); }
+        .quick-action-btn.games { border-color: var(--accent); }
+        .quick-action-btn.games:hover { box-shadow: var(--glow-accent); background: rgba(57, 255, 20, 0.1); }
+        .quick-action-btn.analytics { border-color: var(--primary); }
+        .quick-action-btn.analytics:hover { box-shadow: var(--glow-primary); background: rgba(0, 240, 255, 0.1); }
+        .quick-action-icon {
+            width: 80px; height: 80px; border-radius: 20px; display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem; margin-bottom: 1rem;
+        }
+        .quick-action-btn.categories .quick-action-icon { background: linear-gradient(135deg, var(--secondary), #9d4edd); color: white; }
+        .quick-action-btn.games .quick-action-icon { background: linear-gradient(135deg, var(--accent), #00ff88); color: var(--dark-1); }
+        .quick-action-btn.analytics .quick-action-icon { background: linear-gradient(135deg, var(--primary), #0088ff); color: var(--dark-1); }
+        .quick-action-btn h3 { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; margin-bottom: 0.5rem; }
+        .quick-action-btn p { font-size: 0.9rem; color: var(--text-secondary); text-align: center; }
+
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px);
+            z-index: 2000; display: none; align-items: center; justify-content: center; padding: 2rem; overflow-y: auto;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: var(--dark-2); border-radius: 24px; border: 1px solid var(--glass-border);
+            width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-lg { max-width: 900px; }
+        .modal-header {
+            padding: 1.5rem 2rem; border-bottom: 1px solid var(--glass-border);
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; background: var(--dark-2); z-index: 10;
+        }
+        .modal-header h2 { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        .modal-header h2 i { color: var(--primary); }
+        .modal-close {
+            width: 40px; height: 40px; border-radius: 50%; background: var(--glass);
+            border: 1px solid var(--glass-border); color: var(--text-secondary); cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .modal-close:hover { background: rgba(255, 0, 0, 0.2); border-color: #ff4444; color: #ff4444; }
+        .modal-body { padding: 2rem; }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-secondary); }
+        .form-control {
+            width: 100%; padding: 14px 16px; background: var(--dark-3);
+            border: 2px solid var(--glass-border); border-radius: 12px;
+            color: var(--text-primary); font-family: 'Rajdhani', sans-serif; font-size: 1rem;
+        }
+        .form-control:focus { outline: none; border-color: var(--primary); box-shadow: var(--glow-primary); }
+
+        .login-tabs { display: flex; gap: 1rem; margin-bottom: 2rem; }
+        .login-tab {
+            flex: 1; padding: 1rem; background: var(--glass); border: 2px solid var(--glass-border);
+            border-radius: 12px; cursor: pointer; text-align: center;
+        }
+        .login-tab.active { border-color: var(--primary); background: rgba(0, 240, 255, 0.1); }
+        .login-tab i { font-size: 1.5rem; margin-bottom: 0.5rem; display: block; }
+        .login-tab.user-tab i { color: var(--primary); }
+        .login-tab.admin-tab i { color: var(--secondary); }
+        .login-tab span { font-weight: 600; display: block; }
+
+        .btn-login { width: 100%; padding: 16px; margin-top: 1.5rem; }
+
+        .admin-dashboard { display: none; }
+        .admin-dashboard.active { display: block; }
+        .dashboard-header {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;
+            padding: 2rem; background: linear-gradient(135deg, var(--dark-2), var(--dark-3));
+            border-radius: 20px; border: 1px solid var(--glass-border); flex-wrap: wrap; gap: 1rem;
+        }
+        .dashboard-title { font-family: 'Orbitron', sans-serif; font-size: 2rem; font-weight: 800; }
+        .dashboard-title span { color: var(--secondary); }
+
+        .dashboard-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card {
+            background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px;
+            padding: 1.5rem; position: relative;
+        }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 20px 20px 0 0; }
+        .stat-card-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem; }
+        .stat-card-icon.visitors { background: rgba(0, 240, 255, 0.2); color: var(--primary); }
+        .stat-card-icon.users { background: rgba(255, 0, 229, 0.2); color: var(--secondary); }
+        .stat-card-icon.games { background: rgba(57, 255, 20, 0.2); color: var(--accent); }
+        .stat-card-icon.plays { background: rgba(255, 174, 0, 0.2); color: var(--warning); }
+        .stat-card h3 { font-family: 'Orbitron', sans-serif; font-size: 2rem; }
+        .stat-card p { color: var(--text-secondary); }
+
+        .dashboard-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 20px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .dashboard-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+        .dashboard-card-header h3 { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+        .dashboard-card-header h3 i { color: var(--primary); }
+
+        .list-item {
+            display: flex; align-items: center; gap: 1rem; padding: 1rem;
+            background: var(--dark-3); border-radius: 12px; margin-bottom: 0.75rem;
+        }
+        .list-item:hover { background: var(--dark-4); }
+        .list-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .list-thumb { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; background: var(--dark-4); }
+        .list-info { flex: 1; }
+        .list-info h4 { font-family: 'Orbitron', sans-serif; font-size: 1rem; margin-bottom: 0.25rem; }
+        .list-info p { font-size: 0.85rem; color: var(--text-secondary); }
+        .list-actions { display: flex; gap: 0.5rem; }
+        .action-btn {
+            width: 36px; height: 36px; border-radius: 8px; border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;
+        }
+        .action-btn.edit { background: rgba(0, 240, 255, 0.2); color: var(--primary); }
+        .action-btn.delete { background: rgba(255, 77, 77, 0.2); color: #ff4d4d; }
+        .action-btn.view { background: rgba(57, 255, 20, 0.2); color: var(--accent); }
+        .action-btn.add { background: rgba(255, 174, 0, 0.2); color: var(--warning); }
+        .action-btn:hover { transform: scale(1.1); }
+
+        .category-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; }
+
+        .emoji-picker { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; padding: 1rem; background: var(--dark-3); border-radius: 12px; margin-top: 0.5rem; }
+        .emoji-option {
+            width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; background: var(--dark-4); border-radius: 8px; cursor: pointer; border: 2px solid transparent;
+        }
+        .emoji-option:hover { transform: scale(1.1); }
+        .emoji-option.selected { border-color: var(--primary); background: rgba(0, 240, 255, 0.2); }
+
+        .color-picker-group { display: flex; align-items: center; gap: 1rem; }
+        .color-picker-group input[type="color"] { width: 60px; height: 45px; border: none; border-radius: 8px; cursor: pointer; }
+
+        .game-iframe-container { width: 100%; height: 500px; background: var(--dark-1); border-radius: 16px; overflow: hidden; }
+        .game-iframe-container iframe { width: 100%; height: 100%; border: none; }
+
+        .user-profile { position: relative; display: none; }
+        .user-profile.active { display: block; }
+        .user-avatar {
+            width: 45px; height: 45px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            font-family: 'Orbitron', sans-serif; font-weight: 700; color: var(--dark-1);
+        }
+        .profile-dropdown {
+            position: absolute; top: 55px; right: 0; width: 250px; background: var(--dark-2);
+            border: 1px solid var(--glass-border); border-radius: 16px; padding: 1rem;
+            opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all 0.3s ease;
+        }
+        .profile-dropdown.active { opacity: 1; visibility: visible; transform: translateY(0); }
+        .profile-info { padding: 1rem; border-bottom: 1px solid var(--glass-border); margin-bottom: 0.5rem; }
+        .profile-info h4 { font-family: 'Orbitron', sans-serif; }
+        .profile-info p { font-size: 0.85rem; color: var(--text-secondary); }
+        .profile-menu { list-style: none; }
+        .profile-menu a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: var(--text-secondary); text-decoration: none; border-radius: 10px; }
+        .profile-menu a:hover { background: var(--glass); color: var(--primary); }
+        .profile-menu a.logout { color: #ff4d4d; }
+
+        footer { margin-top: 4rem; padding: 3rem 2rem; background: var(--dark-2); border-top: 1px solid var(--glass-border); }
+        .footer-content { max-width: 1600px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; }
+        .footer-links h4 { font-family: 'Orbitron', sans-serif; margin-bottom: 1rem; color: var(--primary); }
+        .footer-links ul { list-style: none; }
+        .footer-links a { color: var(--text-secondary); text-decoration: none; }
+        .footer-links a:hover { color: var(--primary); }
+        .footer-bottom { max-width: 1600px; margin: 2rem auto 0; padding-top: 2rem; border-top: 1px solid var(--glass-border); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+        .footer-bottom p { color: var(--text-secondary); }
+        .social-links { display: flex; gap: 1rem; }
+        .social-links a { width: 40px; height: 40px; border-radius: 50%; background: var(--glass); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }
+        .social-links a:hover { border-color: var(--primary); color: var(--primary); }
+
+        .notification { position: fixed; top: 90px; right: 20px; padding: 1rem 1.5rem; background: var(--dark-2); border: 1px solid var(--glass-border); border-radius: 12px; display: flex; align-items: center; gap: 12px; z-index: 3000; transform: translateX(400px); transition: 0.3s; }
+        .notification.active { transform: translateX(0); }
+        .notification.success { border-color: var(--accent); }
+        .notification.success i { color: var(--accent); }
+        .notification.error { border-color: #ff4d4d; }
+        .notification.error i { color: #ff4d4d; }
+
+        .empty-state { text-align: center; padding: 3rem; color: var(--text-secondary); }
+        .empty-state i { font-size: 4rem; margin-bottom: 1rem; opacity: 0.3; }
+
+        .loading-screen { position: fixed; inset: 0; background: var(--dark-1); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .loading-screen.hidden { opacity: 0; pointer-events: none; transition: 0.5s; }
+        .loader-icon { width: 80px; height: 80px; background: linear-gradient(135deg, #00d4ff, #a855f7, #ec4899); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; animation: pulse-loader 1s infinite; font-family: 'Caveat', cursive; font-size: 24px; font-weight: 700; color: #1a1a2e; }
+        @keyframes pulse-loader { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .loader-text { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; background: linear-gradient(90deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
+
+        /* Add Game Under Category Button */
+        .add-game-to-cat-btn {
+            padding: 6px 12px; background: rgba(255, 174, 0, 0.2); color: var(--warning);
+            border: 1px solid var(--warning); border-radius: 8px; cursor: pointer;
+            font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;
+        }
+        .add-game-to-cat-btn:hover { background: var(--warning); color: var(--dark-1); }
+
+        @media (max-width: 768px) {
+            .search-container { display: none; }
+            .hero h1 { font-size: 2rem; }
+            .game-card.featured { grid-column: span 1; }
+            .admin-quick-actions { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loader">
+            <div class="loader-icon">Mzee</div>
+            <div class="loader-text">MZeeGamingHub</div>
+        </div>
+    </div>
+
+    <div class="bg-animation"></div>
+    <div class="grid-overlay"></div>
+
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notificationText">Success!</span>
+    </div>
+
+    <header>
+        <div class="header-content">
+            <div class="logo" onclick="showHome()">
+                <div class="logo-icon">Mzee</div>
+                <div>
+                    <div class="logo-text">MZeeGamingHub</div>
+                    <div class="logo-tagline">Play Unlimited</div>
+                </div>
+            </div>
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search games..." id="searchInput" oninput="searchGames()">
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="icon-btn"><i class="fas fa-bell"></i></button>
+                <button class="icon-btn"><i class="fas fa-heart"></i></button>
+                <div class="user-profile" id="userProfile">
+                    <div class="user-avatar" onclick="toggleProfileDropdown()" id="userAvatar">U</div>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <div class="profile-info">
+                            <h4 id="profileName">User</h4>
+                            <p id="profileEmail">user@example.com</p>
+                        </div>
+                        <ul class="profile-menu">
+                            <li><a href="#" onclick="showDashboard()"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                            <li><a href="#" class="logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="loginBtn" onclick="openModal('loginModal')"><i class="fas fa-user"></i> Login</button>
+            </div>
+        </div>
+    </header>
+
+    <main id="mainContent">
+        <section class="hero">
+            <div class="hero-content">
+                <div class="hero-badge"><i class="fas fa-fire"></i><span>TRENDING NOW</span></div>
+                <h1>Welcome to <span>MZeeGamingHub</span></h1>
+                <p>Discover and play thousands of free online games. No downloads, no installs - just instant fun!</p>
+                <div class="hero-stats">
+                    <div class="stat"><div class="stat-value" id="totalGames">6</div><div class="stat-label">Games</div></div>
+                    <div class="stat"><div class="stat-value">50K+</div><div class="stat-label">Players</div></div>
+                    <div class="stat"><div class="stat-value">100+</div><div class="stat-label">Countries</div></div>
+                </div>
+            </div>
+        </section>
+
+        <div class="features-strip">
+            <div class="feature-item"><i class="fas fa-gamepad"></i><span>Unlimited Games</span></div>
+            <div class="feature-item"><i class="fas fa-download"></i><span>No Downloads</span></div>
+            <div class="feature-item"><i class="fas fa-desktop"></i><span>Any Device</span></div>
+            <div class="feature-item"><i class="fas fa-star"></i><span>100% Free</span></div>
+        </div>
+
+        <section style="margin-bottom: 3rem;">
+            <div class="section-header"><h2 class="section-title"><i class="fas fa-th-large"></i> Categories</h2></div>
+            <div class="categories-grid" id="categoriesGrid"></div>
+        </section>
+
+        <section style="margin-bottom: 3rem;">
+            <div class="section-header"><h2 class="section-title"><i class="fas fa-fire"></i> Top Games</h2></div>
+            <div class="games-grid" id="gamesGrid"></div>
+        </section>
+    </main>
+
+    <!-- ADMIN DASHBOARD -->
+    <main class="admin-dashboard" id="adminDashboard">
+        <div class="dashboard-header">
+            <div>
+                <h1 class="dashboard-title">Admin <span>Dashboard</span></h1>
+                <p style="color: var(--text-secondary);">Manage your gaming platform</p>
+            </div>
+            <button class="btn btn-primary" onclick="showHome()"><i class="fas fa-home"></i> View Site</button>
+        </div>
+
+        <!-- QUICK ACTION BUTTONS -->
+        <div class="admin-quick-actions">
+            <div class="quick-action-btn categories" onclick="openCategoryManager()">
+                <div class="quick-action-icon"><i class="fas fa-folder-plus"></i></div>
+                <h3>Manage Categories</h3>
+                <p>Create, edit & organize game categories</p>
+            </div>
+            <div class="quick-action-btn games" onclick="openGameManager()">
+                <div class="quick-action-icon"><i class="fas fa-gamepad"></i></div>
+                <h3>Manage Games</h3>
+                <p>Add, edit & remove games</p>
+            </div>
+            <div class="quick-action-btn analytics" onclick="showAnalytics()">
+                <div class="quick-action-icon"><i class="fas fa-chart-line"></i></div>
+                <h3>View Analytics</h3>
+                <p>Traffic & performance stats</p>
+            </div>
+            <div class="quick-action-btn" style="border-color: #9d4edd;" onclick="openHelpEditor()">
+                <div class="quick-action-icon" style="background: linear-gradient(135deg, #9d4edd, #ff00e5); color: white;"><i class="fas fa-question-circle"></i></div>
+                <h3>Edit Help</h3>
+                <p>Manage help content & FAQs</p>
+            </div>
+            <div class="quick-action-btn" style="border-color: #ff6b00;" onclick="openContactEditor()">
+                <div class="quick-action-icon" style="background: linear-gradient(135deg, #ff6b00, #ffae00); color: var(--dark-1);"><i class="fas fa-envelope"></i></div>
+                <h3>Edit Contact</h3>
+                <p>Update contact information</p>
+            </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="dashboard-stats">
+            <div class="stat-card"><div class="stat-card-icon visitors"><i class="fas fa-eye"></i></div><h3 id="visitorCount">12,543</h3><p>Total Visitors</p></div>
+            <div class="stat-card"><div class="stat-card-icon users"><i class="fas fa-users"></i></div><h3 id="userCount">3,254</h3><p>Registered Users</p></div>
+            <div class="stat-card"><div class="stat-card-icon games"><i class="fas fa-gamepad"></i></div><h3 id="gameCount">6</h3><p>Total Games</p></div>
+            <div class="stat-card"><div class="stat-card-icon plays"><i class="fas fa-play"></i></div><h3 id="playCount">45,892</h3><p>Total Plays</p></div>
+        </div>
+
+        <!-- DASHBOARD CONTENT -->
+        <div id="dashboardContent"></div>
+    </main>
+
+    <!-- LOGIN MODAL -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-circle"></i> Login</h2>
+                <button class="modal-close" onclick="closeModal('loginModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="login-tabs">
+                    <div class="login-tab user-tab active" onclick="switchLoginTab('user')"><i class="fas fa-user"></i><span>User</span></div>
+                    <div class="login-tab admin-tab" onclick="switchLoginTab('admin')"><i class="fas fa-user-shield"></i><span>Admin</span></div>
+                </div>
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group"><label>Email</label><input type="email" class="form-control" id="loginEmail" placeholder="Enter email" required></div>
+                    <div class="form-group"><label>Password</label><input type="password" class="form-control" id="loginPassword" placeholder="Enter password" required></div>
+                    <button type="submit" class="btn btn-primary btn-login"><i class="fas fa-sign-in-alt"></i> Login</button>
+                </form>
+                <p style="text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+                    Demo: <strong>admin@mzee.com / admin123</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CATEGORY MANAGER MODAL -->
+    <div class="modal-overlay" id="categoryManagerModal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h2><i class="fas fa-folder-plus"></i> Manage Categories</h2>
+                <button class="modal-close" onclick="closeModal('categoryManagerModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3 style="font-family: 'Orbitron', sans-serif;">All Categories</h3>
+                    <button class="btn btn-primary btn-sm" onclick="openCategoryForm()"><i class="fas fa-plus"></i> Add Category</button>
+                </div>
+                <div id="categoryManagerList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD/EDIT CATEGORY MODAL -->
+    <div class="modal-overlay" id="categoryFormModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-folder"></i> <span id="categoryFormTitle">Add Category</span></h2>
+                <button class="modal-close" onclick="closeModal('categoryFormModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="handleCategorySubmit(event)">
+                    <input type="hidden" id="editCategoryId">
+                    <div class="form-group"><label>Category Name</label><input type="text" class="form-control" id="categoryName" placeholder="e.g., Action, Racing" required></div>
+                    <div class="form-group"><label>Select Icon</label><div class="emoji-picker" id="emojiPicker"></div><input type="hidden" id="categoryIcon" value="🎮"></div>
+                    <div class="form-group"><label>Color</label><div class="color-picker-group"><input type="color" id="categoryColor" value="#00f0ff"><input type="text" class="form-control" id="categoryColorText" value="#00f0ff" style="flex:1;"></div></div>
+                    <div class="form-group"><label>Description</label><textarea class="form-control" id="categoryDescription" rows="2" placeholder="Brief description"></textarea></div>
+                    <button type="submit" class="btn btn-primary btn-login"><i class="fas fa-save"></i> <span id="categorySubmitBtn">Save Category</span></button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME MANAGER MODAL -->
+    <div class="modal-overlay" id="gameManagerModal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h2><i class="fas fa-gamepad"></i> Manage Games</h2>
+                <button class="modal-close" onclick="closeModal('gameManagerModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                    <select id="filterCategory" onchange="filterGamesByCategory()" class="form-control" style="width: auto; min-width: 200px;"></select>
+                    <button class="btn btn-primary btn-sm" onclick="openGameForm()"><i class="fas fa-plus"></i> Add Game</button>
+                </div>
+                <div id="gameManagerList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD/EDIT GAME MODAL -->
+    <div class="modal-overlay" id="gameFormModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-gamepad"></i> <span id="gameFormTitle">Add Game</span></h2>
+                <button class="modal-close" onclick="closeModal('gameFormModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="handleGameSubmit(event)">
+                    <input type="hidden" id="editGameId">
+                    <div class="form-group"><label>Game Title</label><input type="text" class="form-control" id="gameTitle" placeholder="Enter game title" required></div>
+                    <div class="form-group"><label>Game URL</label><input type="url" class="form-control" id="gameUrl" placeholder="https://example.com/game" required></div>
+                    <div class="form-group">
+                        <label>Game Thumbnail</label>
+                        <div id="thumbnailUploadArea" style="border: 2px dashed var(--glass-border); border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s; margin-bottom: 0.5rem;" onclick="document.getElementById('thumbnailFileInput').click()">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem;"></i>
+                            <p style="color: var(--text-secondary);">Click to upload image or drag & drop</p>
+                            <p style="font-size: 0.8rem; color: var(--text-secondary);">PNG, JPG up to 5MB</p>
+                        </div>
+                        <input type="file" id="thumbnailFileInput" accept="image/*" style="display: none;" onchange="handleThumbnailUpload(event)">
+                        <div id="thumbnailPreview" style="display: none; position: relative; margin-top: 0.5rem;">
+                            <img id="thumbnailPreviewImg" src="" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px;">
+                            <button type="button" onclick="removeThumbnail()" style="position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%; background: rgba(255,0,0,0.8); border: none; color: white; cursor: pointer;"><i class="fas fa-times"></i></button>
+                        </div>
+                        <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="color: var(--text-secondary); font-size: 0.9rem;">Or enter URL:</span>
+                        </div>
+                        <input type="url" class="form-control" id="gameThumbnail" placeholder="https://example.com/image.jpg" style="margin-top: 0.5rem;">
+                    </div>
+                    <div class="form-group"><label>Category</label><select class="form-control" id="gameCategory" required></select></div>
+                    <div class="form-group"><label>Description</label><textarea class="form-control" id="gameDescription" rows="2" placeholder="Game description"></textarea></div>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" id="gameFeatured" style="width: 18px; height: 18px;"><span>Featured</span></label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" id="gameHot" style="width: 18px; height: 18px;"><span>Hot</span></label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" id="gameNew" style="width: 18px; height: 18px;"><span>New</span></label>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-login"><i class="fas fa-save"></i> <span id="gameSubmitBtn">Add Game</span></button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- CATEGORY GAMES MODAL -->
+    <div class="modal-overlay" id="categoryGamesModal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h2><i class="fas fa-folder-open"></i> <span id="categoryGamesTitle">Category Games</span></h2>
+                <button class="modal-close" onclick="closeModal('categoryGamesModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 1.5rem;">
+                    <button class="btn btn-warning btn-sm" onclick="addGameToCurrentCategory()"><i class="fas fa-plus"></i> Add Game to This Category</button>
+                </div>
+                <div id="categoryGamesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME PLAYER MODAL -->
+    <div class="modal-overlay" id="gamePlayerModal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h2><i class="fas fa-play"></i> <span id="playingGameTitle">Game</span></h2>
+                <button class="modal-close" onclick="closeGamePlayer()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div class="game-iframe-container"><iframe id="gameIframe" src="" allowfullscreen></iframe></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANALYTICS MODAL -->
+    <div class="modal-overlay" id="analyticsModal">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <h2><i class="fas fa-chart-line"></i> Analytics Dashboard</h2>
+                <button class="modal-close" onclick="closeModal('analyticsModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="dashboard-stats" style="margin-bottom: 2rem;">
+                    <div class="stat-card"><div class="stat-card-icon" style="background: linear-gradient(135deg, var(--primary), #0088ff); color: var(--dark-1);"><i class="fas fa-eye"></i></div><h3 id="analyticsVisitors">0</h3><p>Total Visitors</p></div>
+                    <div class="stat-card"><div class="stat-card-icon" style="background: linear-gradient(135deg, var(--secondary), #9d4edd); color: white;"><i class="fas fa-users"></i></div><h3 id="analyticsUsers">0</h3><p>Registered Users</p></div>
+                    <div class="stat-card"><div class="stat-card-icon" style="background: linear-gradient(135deg, var(--accent), #00ff88); color: var(--dark-1);"><i class="fas fa-gamepad"></i></div><h3 id="analyticsGames">0</h3><p>Total Games</p></div>
+                    <div class="stat-card"><div class="stat-card-icon" style="background: linear-gradient(135deg, var(--warning), #ff6b00); color: var(--dark-1);"><i class="fas fa-play"></i></div><h3 id="analyticsPlays">0</h3><p>Total Plays</p></div>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                    <button class="btn btn-sm" style="background: rgba(0,240,255,0.2); color: var(--primary);" onclick="setAnalyticsRange('7d')">7 Days</button>
+                    <button class="btn btn-sm" style="background: rgba(0,240,255,0.2); color: var(--primary);" onclick="setAnalyticsRange('30d')">30 Days</button>
+                    <button class="btn btn-sm" style="background: rgba(0,240,255,0.2); color: var(--primary);" onclick="setAnalyticsRange('all')">All Time</button>
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem; font-family: 'Orbitron', sans-serif;">Visitors Chart (Last 7 Days)</h4>
+                    <div id="analyticsChart" style="display: flex; align-items: flex-end; gap: 8px; height: 150px;"></div>
+                </div>
+                <div style="background: var(--glass); border: 1px solid var(--glass-border); border-radius: 16px; padding: 1.5rem;">
+                    <h4 style="margin-bottom: 1rem; font-family: 'Orbitron', sans-serif;">Top Games</h4>
+                    <div id="topGamesList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HELP EDITOR MODAL -->
+    <div class="modal-overlay" id="helpEditorModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-question-circle"></i> Edit Help Content</h2>
+                <button class="modal-close" onclick="closeModal('helpEditorModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="saveHelpContent(event)">
+                    <div class="form-group">
+                        <label>Help Page Title</label>
+                        <input type="text" class="form-control" id="helpTitle" placeholder="Help & Support">
+                    </div>
+                    <div class="form-group">
+                        <label>Help Content</label>
+                        <textarea class="form-control" id="helpContent" rows="6" placeholder="Enter help content..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>FAQ Section</label>
+                        <div id="faqEditor"></div>
+                        <button type="button" class="btn btn-sm" style="background: rgba(0,240,255,0.2); color: var(--primary); margin-top: 0.5rem;" onclick="addFaqItem()"><i class="fas fa-plus"></i> Add FAQ</button>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-login"><i class="fas fa-save"></i> Save Help Content</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTACT EDITOR MODAL -->
+    <div class="modal-overlay" id="contactEditorModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-envelope"></i> Edit Contact Info</h2>
+                <button class="modal-close" onclick="closeModal('contactEditorModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="saveContactInfo(event)">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" class="form-control" id="contactEmail" placeholder="support@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" class="form-control" id="contactPhone" placeholder="+1 234 567 890">
+                    </div>
+                    <div class="form-group">
+                        <label>Address</label>
+                        <textarea class="form-control" id="contactAddress" rows="2" placeholder="Enter address..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Support Hours</label>
+                        <input type="text" class="form-control" id="contactHours" placeholder="24/7 Support">
+                    </div>
+                    <div class="form-group">
+                        <label>Social Links</label>
+                        <input type="url" class="form-control" id="socialFacebook" placeholder="Facebook URL" style="margin-bottom: 0.5rem;">
+                        <input type="url" class="form-control" id="socialTwitter" placeholder="Twitter URL" style="margin-bottom: 0.5rem;">
+                        <input type="url" class="form-control" id="socialDiscord" placeholder="Discord URL">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-login"><i class="fas fa-save"></i> Save Contact Info</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links"><h4>MZeeGamingHub</h4><p style="color: var(--text-secondary);">Play unlimited free games online.</p></div>
+            <div class="footer-links"><h4>Links</h4><ul><li><a href="#">All Games</a></li><li><a href="#">Categories</a></li></ul></div>
+            <div class="footer-links"><h4>Support</h4><ul><li><a href="#" onclick="openHelpPage()">Help</a></li><li><a href="#" onclick="openContactPage()">Contact</a></li></ul></div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 MZeeGamingHub</p>
+            <div class="social-links">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-discord"></i></a>
+            </div>
+        </div>
+    </footer>
+
+
+    <script>
+        // STORAGE KEY
+        const STORAGE_KEY = 'mzeegaminghub_data';
+        
+        // Load data from localStorage or use defaults
+        function loadStoredData() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) return JSON.parse(saved);
+            } catch(e) { console.error('Error loading data:', e); }
+            return null;
+        }
+        
+        function saveAllData() {
+            const dataToSave = {
+                categories, games, analytics, helpData, contactData,
+                lastUpdated: new Date().toISOString()
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+        }
+        
+        // Initialize data
+        const storedData = loadStoredData();
+        
+        let categories = storedData?.categories || [
+            { id: 1, name: 'Action', icon: '🎯', color: '#ff4d4d', description: 'Fast-paced action games' },
+            { id: 2, name: 'Adventure', icon: '🗺️', color: '#00f0ff', description: 'Explore new worlds' },
+            { id: 3, name: 'Puzzle', icon: '🧩', color: '#ff00e5', description: 'Brain teasers' },
+            { id: 4, name: 'Racing', icon: '🏎️', color: '#39ff14', description: 'High-speed racing' },
+            { id: 5, name: 'Sports', icon: '⚽', color: '#ffae00', description: 'Sports games' },
+            { id: 6, name: 'Simulation', icon: '🎮', color: '#00ff88', description: 'Life simulations' }
+        ];
+
+        let games = storedData?.games || [
+            { id: 1, title: 'Business Tycoon', categoryId: 6, thumbnail: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop', url: 'https://business-tycoon.onrender.com/', plays: 15234, badges: ['featured', 'hot'], featured: true },
+            { id: 2, title: 'Block World', categoryId: 2, thumbnail: 'https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=400&h=300&fit=crop', url: 'about:blank', plays: 28456, badges: ['hot'], featured: false },
+            { id: 3, title: 'Speed Racer', categoryId: 4, thumbnail: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=400&h=300&fit=crop', url: 'about:blank', plays: 19823, badges: ['new'], featured: false },
+            { id: 4, title: 'Puzzle Master', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=400&h=300&fit=crop', url: 'https://www.gameflare.com/embed/2048/', plays: 12456, badges: [], featured: false },
+            { id: 5, title: 'Football League', categoryId: 5, thumbnail: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&h=300&fit=crop', url: 'about:blank', plays: 22345, badges: ['hot'], featured: false },
+            { id: 6, title: 'Sky Combat', categoryId: 1, thumbnail: 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=300&fit=crop', url: 'about:blank', plays: 31245, badges: ['featured'], featured: true },
+            { id: 7, title: '2048 Classic', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1611996575749-79a3a250f948?w=400&h=300&fit=crop', url: 'https://play2048.co/', plays: 45678, badges: ['hot', 'featured'], featured: true },
+            { id: 8, title: 'Sudoku', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1580541832626-2a7131ee809f?w=400&h=300&fit=crop', url: 'https://www.gameflare.com/embed/sudoku-classic/', plays: 34521, badges: ['new'], featured: false },
+            { id: 9, title: 'Tetris', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1628277613967-6abca504571d?w=400&h=300&fit=crop', url: 'https://tetris.com/play-tetris', plays: 52341, badges: ['hot', 'featured'], featured: true },
+            { id: 10, title: 'Mahjong Connect', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1605870445919-838d190e8e1b?w=400&h=300&fit=crop', url: 'https://www.gameflare.com/embed/mahjong-connect/', plays: 28934, badges: ['hot'], featured: false },
+            { id: 11, title: 'Bubble Shooter', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop', url: 'https://www.gameflare.com/embed/bubble-shooter/', plays: 41256, badges: ['featured'], featured: false },
+            { id: 12, title: 'Chess', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=400&h=300&fit=crop', url: 'https://www.chess.com/play/computer', plays: 38456, badges: ['hot'], featured: false },
+            { id: 13, title: 'Solitaire', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1541278107931-e006523892df?w=400&h=300&fit=crop', url: 'https://www.gameflare.com/embed/solitaire-classic/', plays: 29876, badges: ['new'], featured: false },
+            { id: 14, title: 'Word Search', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1632501641765-e568d28b0015?w=400&h=300&fit=crop', url: 'https://www.gameflare.com/embed/word-search/', plays: 18234, badges: [], featured: false }
+        ];
+        
+        // Analytics data
+        let analytics = storedData?.analytics || {
+            totalVisitors: 0,
+            registeredUsers: 0,
+            totalPlays: 0,
+            dailyData: [],
+            visitorLog: []
+        };
+        
+        // Help data
+        let helpData = storedData?.helpData || {
+            title: 'Help & Support',
+            content: 'Welcome to MZeeGamingHub! We provide the best gaming experience.\n\nCheck our FAQ below or contact us for help.',
+            faqs: [
+                { q: 'How do I play games?', a: 'Click on any game card to start playing instantly!' },
+                { q: 'Do I need to register?', a: 'No registration required! All games are free.' },
+                { q: 'How can I contact support?', a: 'Use the Contact page or email us.' }
+            ]
+        };
+        
+        // Contact data
+        let contactData = storedData?.contactData || {
+            email: 'support@mzeegaminghub.com',
+            phone: '+1 234 567 890',
+            address: '123 Gaming Street, Digital City',
+            hours: '24/7 Support Available',
+            social: { facebook: '', twitter: '', discord: '' }
+        };
+
+        const iconOptions = ['🎮', '🎯', '🗺️', '🧩', '🏎️', '⚽', '♟️', '👥', '🔫', '🏃', '🎲', '🃏', '🎪', '🎭', '🎨', '🎬', '🏀', '🏈', '⚾', '🎾', '🚗', '✈️', '🚀', '👾', '🤖', '👻', '💀', '🧟', '🧙', '⚔️', '🛡️', '🏹', '💣', '🎖️', '🏆', '🎡', '🎢', '🎠', '🎰', '🎳'];
+
+        let currentUser = null;
+        let loginType = 'user';
+        let currentCategoryId = null;
+        let uploadedThumbnail = null;
+
+        const accounts = {
+            users: [{ email: 'user@mzee.com', password: 'user123', name: 'Player One' }],
+            admins: [{ email: 'admin@mzee.com', password: 'admin123', name: 'Admin' }]
+        };
+
+        // INIT
+        document.addEventListener('DOMContentLoaded', () => {
+            initEmojiPicker();
+            trackVisitor();
+            renderAll();
+            setTimeout(() => document.getElementById('loadingScreen').classList.add('hidden'), 800);
+            document.getElementById('categoryColor').addEventListener('input', function() {
+                document.getElementById('categoryColorText').value = this.value;
+            });
+        });
+        
+        // VISITOR TRACKING
+        function trackVisitor() {
+            const today = new Date().toISOString().split('T')[0];
+            const sessionKey = 'mzee_session_' + today;
+            
+            if (!sessionStorage.getItem(sessionKey)) {
+                sessionStorage.setItem(sessionKey, 'true');
+                analytics.totalVisitors++;
+                
+                let dayData = analytics.dailyData.find(d => d.date === today);
+                if (!dayData) {
+                    dayData = { date: today, visitors: 0, plays: 0 };
+                    analytics.dailyData.push(dayData);
+                }
+                dayData.visitors++;
+                
+                analytics.visitorLog.push({ timestamp: new Date().toISOString(), date: today });
+                if (analytics.visitorLog.length > 1000) analytics.visitorLog = analytics.visitorLog.slice(-1000);
+                
+                saveAllData();
+            }
+        }
+        
+        // IMAGE UPLOAD
+        function handleThumbnailUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (file.size > 5 * 1024 * 1024) {
+                showNotification('File too large! Max 5MB', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                uploadedThumbnail = e.target.result;
+                document.getElementById('thumbnailPreviewImg').src = uploadedThumbnail;
+                document.getElementById('thumbnailPreview').style.display = 'block';
+                document.getElementById('thumbnailUploadArea').style.display = 'none';
+                document.getElementById('gameThumbnail').value = '';
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function removeThumbnail() {
+            uploadedThumbnail = null;
+            document.getElementById('thumbnailPreview').style.display = 'none';
+            document.getElementById('thumbnailUploadArea').style.display = 'block';
+            document.getElementById('thumbnailFileInput').value = '';
+        }
+
+        function initEmojiPicker() {
+            document.getElementById('emojiPicker').innerHTML = iconOptions.map(e => 
+                `<div class="emoji-option ${e === '🎮' ? 'selected' : ''}" onclick="selectEmoji('${e}', this)">${e}</div>`
+            ).join('');
+        }
+
+        function selectEmoji(emoji, el) {
+            document.querySelectorAll('.emoji-option').forEach(e => e.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('categoryIcon').value = emoji;
+        }
+
+        function getCategoryById(id) { return categories.find(c => c.id === id); }
+        function getGamesByCategoryId(id) { return games.filter(g => g.categoryId === id); }
+        function formatNumber(n) { return n >= 1000 ? (n / 1000).toFixed(1) + 'K' : n.toString(); }
+
+        // RENDER
+        function renderAll() {
+            renderCategories();
+            renderGames();
+            document.getElementById('totalGames').textContent = games.length;
+            document.getElementById('gameCount').textContent = games.length;
+            document.getElementById('visitorCount').textContent = formatNumber(analytics.totalVisitors);
+            document.getElementById('userCount').textContent = formatNumber(analytics.registeredUsers);
+            document.getElementById('playCount').textContent = formatNumber(games.reduce((s, g) => s + g.plays, 0));
+        }
+
+        function renderCategories() {
+            document.getElementById('categoriesGrid').innerHTML = categories.map(c => {
+                const count = getGamesByCategoryId(c.id).length;
+                return `<div class="category-card" onclick="filterByCategory(${c.id})"><div class="category-icon">${c.icon}</div><div class="category-name">${c.name}</div><div class="category-count">${count} games</div></div>`;
+            }).join('');
+        }
+
+        function renderGames(filtered = null) {
+            const list = filtered || games;
+            document.getElementById('gamesGrid').innerHTML = list.map((g, i) => {
+                const cat = getCategoryById(g.categoryId);
+                return `<div class="game-card ${g.featured && i < 2 ? 'featured' : ''}" onclick="playGame(${g.id})"><div class="game-thumbnail"><img src="${g.thumbnail}" alt="${g.title}" onerror="this.src='https://via.placeholder.com/400x300?text=Game'"><div class="game-badges">${g.badges.map(b => `<span class="game-badge badge-${b}">${b}</span>`).join('')}</div><div class="play-overlay"><div class="play-btn"><i class="fas fa-play"></i></div></div></div><div class="game-info"><div class="game-title">${g.title}</div><div class="game-meta"><span><i class="fas fa-folder" style="color: ${cat?.color || '#fff'};"></i> ${cat?.name || 'Unknown'}</span><span><i class="fas fa-play" style="color: var(--accent);"></i> ${formatNumber(g.plays)}</span></div></div></div>`;
+            }).join('');
+        }
+
+        // CATEGORY MANAGER
+        function openCategoryManager() { renderCategoryManager(); openModal('categoryManagerModal'); }
+
+        function renderCategoryManager() {
+            document.getElementById('categoryManagerList').innerHTML = categories.map(c => {
+                const count = getGamesByCategoryId(c.id).length;
+                return `<div class="list-item"><div class="list-info"><span class="category-badge" style="background: ${c.color}20; color: ${c.color};">${c.icon} ${c.name}</span><p>${count} games · ${c.description || 'No description'}</p></div><div class="list-actions"><button class="action-btn view" onclick="viewCategoryGames(${c.id})" title="View Games"><i class="fas fa-eye"></i></button><button class="action-btn edit" onclick="editCategory(${c.id})" title="Edit"><i class="fas fa-edit"></i></button><button class="action-btn delete" onclick="deleteCategory(${c.id})" title="Delete"><i class="fas fa-trash"></i></button></div></div>`;
+            }).join('') || '<div class="empty-state"><i class="fas fa-folder-open"></i><p>No categories yet</p></div>';
+        }
+
+        function viewCategoryGames(id) {
+            currentCategoryId = id;
+            const cat = getCategoryById(id);
+            const catGames = getGamesByCategoryId(id);
+            document.getElementById('categoryGamesTitle').textContent = `${cat.icon} ${cat.name} Games`;
+            document.getElementById('categoryGamesList').innerHTML = catGames.map(g => `<div class="list-item"><div class="list-info" style="display: flex; align-items: center; gap: 1rem;"><img src="${g.thumbnail}" style="width: 60px; height: 40px; object-fit: cover; border-radius: 8px;" onerror="this.src='https://via.placeholder.com/60x40?text=Game'"><div><strong>${g.title}</strong><p>${formatNumber(g.plays)} plays</p></div></div><div class="list-actions"><button class="action-btn edit" onclick="editGame(${g.id})" title="Edit"><i class="fas fa-edit"></i></button><button class="action-btn delete" onclick="deleteGame(${g.id})" title="Delete"><i class="fas fa-trash"></i></button></div></div>`).join('') || '<div class="empty-state"><i class="fas fa-gamepad"></i><p>No games in this category</p></div>';
+            openModal('categoryGamesModal');
+        }
+
+        function addGameToCurrentCategory() { closeModal('categoryGamesModal'); openGameForm(null, currentCategoryId); }
+
+        function openCategoryForm(id = null) {
+            document.getElementById('editCategoryId').value = id || '';
+            document.getElementById('categoryFormTitle').textContent = id ? 'Edit Category' : 'Add Category';
+            document.getElementById('categorySubmitBtn').textContent = id ? 'Update Category' : 'Save Category';
+            if (id) {
+                const c = getCategoryById(id);
+                document.getElementById('categoryName').value = c.name;
+                document.getElementById('categoryIcon').value = c.icon;
+                document.getElementById('categoryColor').value = c.color;
+                document.getElementById('categoryColorText').value = c.color;
+                document.getElementById('categoryDescription').value = c.description || '';
+                document.querySelectorAll('.emoji-option').forEach(e => e.classList.toggle('selected', e.textContent === c.icon));
+            } else {
+                document.getElementById('categoryName').value = '';
+                document.getElementById('categoryIcon').value = '🎮';
+                document.getElementById('categoryColor').value = '#00f0ff';
+                document.getElementById('categoryColorText').value = '#00f0ff';
+                document.getElementById('categoryDescription').value = '';
+                initEmojiPicker();
+            }
+            openModal('categoryFormModal');
+        }
+
+        function handleCategorySubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editCategoryId').value;
+            const data = { name: document.getElementById('categoryName').value, icon: document.getElementById('categoryIcon').value, color: document.getElementById('categoryColor').value, description: document.getElementById('categoryDescription').value };
+            if (editId) { const idx = categories.findIndex(c => c.id === parseInt(editId)); categories[idx] = { ...categories[idx], ...data }; showNotification('Category updated!', 'success'); }
+            else { categories.push({ id: Math.max(...categories.map(c => c.id), 0) + 1, ...data }); showNotification('Category added!', 'success'); }
+            closeModal('categoryFormModal'); renderCategoryManager(); renderAll(); saveAllData();
+        }
+
+        function editCategory(id) { openCategoryForm(id); }
+        function deleteCategory(id) { if (!confirm('Delete this category?')) return; categories = categories.filter(c => c.id !== id); renderCategoryManager(); renderAll(); saveAllData(); showNotification('Category deleted!', 'success'); }
+
+        // GAME MANAGER
+        function openGameManager() {
+            document.getElementById('filterCategory').innerHTML = '<option value="">All Categories</option>' + categories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+            renderGameManager(); openModal('gameManagerModal');
+        }
+
+        function renderGameManager(filtered = null) {
+            const list = filtered || games;
+            document.getElementById('gameManagerList').innerHTML = list.map(g => {
+                const cat = getCategoryById(g.categoryId);
+                return `<div class="list-item"><div class="list-info" style="display: flex; align-items: center; gap: 1rem;"><img src="${g.thumbnail}" style="width: 80px; height: 50px; object-fit: cover; border-radius: 8px;" onerror="this.src='https://via.placeholder.com/80x50?text=Game'"><div><strong>${g.title}</strong> ${g.badges.map(b => `<span class="game-badge badge-${b}" style="font-size: 0.65rem; padding: 2px 6px;">${b}</span>`).join('')}<p>${cat?.name || 'Uncategorized'} · ${formatNumber(g.plays)} plays</p></div></div><div class="list-actions"><button class="action-btn edit" onclick="editGame(${g.id})" title="Edit"><i class="fas fa-edit"></i></button><button class="action-btn delete" onclick="deleteGame(${g.id})" title="Delete"><i class="fas fa-trash"></i></button></div></div>`;
+            }).join('') || '<div class="empty-state"><i class="fas fa-gamepad"></i><p>No games yet</p></div>';
+        }
+
+        function openGameForm(id = null, presetCategoryId = null) {
+            document.getElementById('editGameId').value = id || '';
+            document.getElementById('gameFormTitle').textContent = id ? 'Edit Game' : 'Add Game';
+            document.getElementById('gameSubmitBtn').textContent = id ? 'Update Game' : 'Add Game';
+            document.getElementById('gameCategory').innerHTML = categories.map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+            
+            uploadedThumbnail = null;
+            document.getElementById('thumbnailPreview').style.display = 'none';
+            document.getElementById('thumbnailUploadArea').style.display = 'block';
+            document.getElementById('thumbnailFileInput').value = '';
+            
+            if (id) {
+                const g = games.find(x => x.id === id);
+                document.getElementById('gameTitle').value = g.title;
+                document.getElementById('gameUrl').value = g.url;
+                document.getElementById('gameThumbnail').value = g.thumbnail.startsWith('data:') ? '' : g.thumbnail;
+                document.getElementById('gameCategory').value = g.categoryId;
+                document.getElementById('gameDescription').value = g.description || '';
+                document.getElementById('gameFeatured').checked = g.badges.includes('featured');
+                document.getElementById('gameHot').checked = g.badges.includes('hot');
+                document.getElementById('gameNew').checked = g.badges.includes('new');
+                if (g.thumbnail) { uploadedThumbnail = g.thumbnail; document.getElementById('thumbnailPreviewImg').src = g.thumbnail; document.getElementById('thumbnailPreview').style.display = 'block'; document.getElementById('thumbnailUploadArea').style.display = 'none'; }
+            } else {
+                document.getElementById('gameTitle').value = '';
+                document.getElementById('gameUrl').value = '';
+                document.getElementById('gameThumbnail').value = '';
+                document.getElementById('gameCategory').value = presetCategoryId || categories[0]?.id || '';
+                document.getElementById('gameDescription').value = '';
+                document.getElementById('gameFeatured').checked = false;
+                document.getElementById('gameHot').checked = false;
+                document.getElementById('gameNew').checked = false;
+            }
+            openModal('gameFormModal');
+        }
+
+        function handleGameSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editGameId').value;
+            const badges = [];
+            if (document.getElementById('gameHot').checked) badges.push('hot');
+            if (document.getElementById('gameFeatured').checked) badges.push('featured');
+            if (document.getElementById('gameNew').checked) badges.push('new');
+            let thumbnail = uploadedThumbnail || document.getElementById('gameThumbnail').value || 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=400&h=300&fit=crop';
+            const data = { title: document.getElementById('gameTitle').value, categoryId: parseInt(document.getElementById('gameCategory').value) || null, thumbnail: thumbnail, url: document.getElementById('gameUrl').value, description: document.getElementById('gameDescription').value, badges, featured: document.getElementById('gameFeatured').checked };
+            if (editId) { const idx = games.findIndex(g => g.id === parseInt(editId)); games[idx] = { ...games[idx], ...data }; showNotification('Game updated!', 'success'); }
+            else { games.push({ id: Math.max(...games.map(g => g.id), 0) + 1, ...data, plays: 0 }); showNotification('Game added!', 'success'); }
+            closeModal('gameFormModal'); renderAll(); saveAllData();
+        }
+
+        function editGame(id) { openGameForm(id); }
+        function deleteGame(id) { if (!confirm('Delete this game?')) return; games = games.filter(g => g.id !== id); renderAll(); renderGameManager(); saveAllData(); showNotification('Game deleted!', 'success'); }
+        function filterGamesByCategory() { const id = document.getElementById('filterCategory').value; renderGameManager(id ? games.filter(g => g.categoryId === parseInt(id)) : null); }
+        function filterByCategory(id) { renderGames(games.filter(g => g.categoryId === id)); const cat = getCategoryById(id); showNotification(`Showing ${cat.name} games`, 'success'); }
+        function searchGames() { const q = document.getElementById('searchInput').value.toLowerCase(); renderGames(games.filter(g => g.title.toLowerCase().includes(q))); }
+
+        function playGame(id) {
+            const g = games.find(x => x.id === id);
+            document.getElementById('playingGameTitle').textContent = g.title;
+            document.getElementById('gameIframe').src = g.url;
+            openModal('gamePlayerModal');
+            g.plays++; analytics.totalPlays++;
+            const today = new Date().toISOString().split('T')[0];
+            let dayData = analytics.dailyData.find(d => d.date === today);
+            if (!dayData) { dayData = { date: today, visitors: 0, plays: 0 }; analytics.dailyData.push(dayData); }
+            dayData.plays++;
+            saveAllData();
+        }
+
+        function closeGamePlayer() { document.getElementById('gameIframe').src = ''; closeModal('gamePlayerModal'); }
+
+        // AUTH
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const list = loginType === 'admin' ? accounts.admins : accounts.users;
+            const user = list.find(u => u.email === email && u.password === password);
+            if (user) {
+                currentUser = { ...user, type: loginType };
+                document.getElementById('loginBtn').style.display = 'none';
+                document.getElementById('userProfile').classList.add('active');
+                document.getElementById('userAvatar').textContent = user.name[0];
+                document.getElementById('profileName').textContent = user.name;
+                document.getElementById('profileEmail').textContent = user.email;
+                closeModal('loginModal');
+                showNotification(`Welcome, ${user.name}!`, 'success');
+                if (loginType === 'admin') showDashboard();
+                if (loginType === 'user') { analytics.registeredUsers++; saveAllData(); }
+            } else { showNotification('Invalid credentials!', 'error'); }
+        }
+
+        function logout() { currentUser = null; document.getElementById('loginBtn').style.display = 'block'; document.getElementById('userProfile').classList.remove('active'); document.getElementById('profileDropdown').classList.remove('active'); showHome(); showNotification('Logged out!', 'success'); }
+        function switchLoginTab(type) { loginType = type; document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active')); document.querySelector(`.${type}-tab`).classList.add('active'); }
+        function toggleProfileDropdown() { document.getElementById('profileDropdown').classList.toggle('active'); }
+
+        // DASHBOARD
+        function showDashboard() { if (!currentUser || currentUser.type !== 'admin') return showNotification('Admin access required!', 'error'); document.getElementById('mainContent').style.display = 'none'; document.getElementById('adminDashboard').classList.add('active'); document.getElementById('profileDropdown').classList.remove('active'); renderAll(); }
+        function showHome() { document.getElementById('mainContent').style.display = 'block'; document.getElementById('adminDashboard').classList.remove('active'); renderAll(); }
+
+        // ANALYTICS
+        function showAnalytics() {
+            document.getElementById('analyticsVisitors').textContent = formatNumber(analytics.totalVisitors);
+            document.getElementById('analyticsUsers').textContent = formatNumber(analytics.registeredUsers);
+            document.getElementById('analyticsGames').textContent = games.length;
+            document.getElementById('analyticsPlays').textContent = formatNumber(games.reduce((s, g) => s + g.plays, 0));
+            renderAnalyticsChart();
+            const topGames = [...games].sort((a, b) => b.plays - a.plays).slice(0, 5);
+            document.getElementById('topGamesList').innerHTML = topGames.map((g, i) => `<div class="list-item" style="padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border);"><div class="list-info" style="display: flex; align-items: center; gap: 1rem;"><span style="font-size: 1.5rem; font-weight: bold; color: ${i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : 'var(--text-secondary)'};">#${i + 1}</span><img src="${g.thumbnail}" style="width: 50px; height: 35px; object-fit: cover; border-radius: 6px;" onerror="this.src='https://via.placeholder.com/50x35?text=Game'"><div><strong>${g.title}</strong><p style="font-size: 0.85rem; color: var(--text-secondary);">${formatNumber(g.plays)} plays</p></div></div></div>`).join('') || '<p style="color: var(--text-secondary);">No games yet</p>';
+            openModal('analyticsModal');
+        }
+        
+        function renderAnalyticsChart() {
+            const last7Days = [];
+            for (let i = 6; i >= 0; i--) { const date = new Date(); date.setDate(date.getDate() - i); const dateStr = date.toISOString().split('T')[0]; const dayData = analytics.dailyData.find(d => d.date === dateStr) || { visitors: 0, plays: 0 }; last7Days.push({ date: dateStr, ...dayData }); }
+            const maxVisitors = Math.max(...last7Days.map(d => d.visitors), 1);
+            document.getElementById('analyticsChart').innerHTML = last7Days.map(day => {
+                const height = (day.visitors / maxVisitors) * 100;
+                const dateLabel = new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' });
+                return `<div style="flex: 1; display: flex; flex-direction: column; align-items: center;"><div style="width: 100%; height: ${Math.max(height, 5)}%; background: linear-gradient(to top, var(--primary), var(--secondary)); border-radius: 4px 4px 0 0; min-height: 5px;" title="${day.visitors} visitors"></div><span style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 8px;">${dateLabel}</span><span style="font-size: 0.8rem; color: var(--primary);">${day.visitors}</span></div>`;
+            }).join('');
+        }
+        
+        function setAnalyticsRange(range) { showNotification(`Showing ${range === '7d' ? 'last 7 days' : range === '30d' ? 'last 30 days' : 'all time'} data`, 'success'); }
+
+        // HELP EDITOR
+        function openHelpEditor() { document.getElementById('helpTitle').value = helpData.title; document.getElementById('helpContent').value = helpData.content; renderFaqEditor(); openModal('helpEditorModal'); }
+        
+        function renderFaqEditor() {
+            document.getElementById('faqEditor').innerHTML = helpData.faqs.map((faq, i) => `<div style="background: var(--dark-3); border-radius: 8px; padding: 1rem; margin-bottom: 0.5rem;"><input type="text" class="form-control" value="${faq.q}" onchange="updateFaq(${i}, 'q', this.value)" placeholder="Question" style="margin-bottom: 0.5rem;"><textarea class="form-control" onchange="updateFaq(${i}, 'a', this.value)" placeholder="Answer" rows="2">${faq.a}</textarea><button type="button" onclick="removeFaq(${i})" style="margin-top: 0.5rem; background: rgba(255,0,0,0.2); color: #ff4d4d; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;"><i class="fas fa-trash"></i> Remove</button></div>`).join('');
+        }
+        
+        function addFaqItem() { helpData.faqs.push({ q: '', a: '' }); renderFaqEditor(); }
+        function updateFaq(index, field, value) { helpData.faqs[index][field] = value; }
+        function removeFaq(index) { helpData.faqs.splice(index, 1); renderFaqEditor(); }
+        function saveHelpContent(e) { e.preventDefault(); helpData.title = document.getElementById('helpTitle').value; helpData.content = document.getElementById('helpContent').value; saveAllData(); closeModal('helpEditorModal'); showNotification('Help content saved!', 'success'); }
+        function openHelpPage() { alert(`${helpData.title}\n\n${helpData.content}\n\n--- FAQs ---\n${helpData.faqs.map(f => `Q: ${f.q}\nA: ${f.a}`).join('\n\n')}`); }
+
+        // CONTACT EDITOR
+        function openContactEditor() { document.getElementById('contactEmail').value = contactData.email; document.getElementById('contactPhone').value = contactData.phone; document.getElementById('contactAddress').value = contactData.address; document.getElementById('contactHours').value = contactData.hours; document.getElementById('socialFacebook').value = contactData.social.facebook; document.getElementById('socialTwitter').value = contactData.social.twitter; document.getElementById('socialDiscord').value = contactData.social.discord; openModal('contactEditorModal'); }
+        function saveContactInfo(e) { e.preventDefault(); contactData.email = document.getElementById('contactEmail').value; contactData.phone = document.getElementById('contactPhone').value; contactData.address = document.getElementById('contactAddress').value; contactData.hours = document.getElementById('contactHours').value; contactData.social.facebook = document.getElementById('socialFacebook').value; contactData.social.twitter = document.getElementById('socialTwitter').value; contactData.social.discord = document.getElementById('socialDiscord').value; saveAllData(); closeModal('contactEditorModal'); showNotification('Contact info saved!', 'success'); }
+        function openContactPage() { alert(`Contact Us\n\nEmail: ${contactData.email}\nPhone: ${contactData.phone}\nAddress: ${contactData.address}\nHours: ${contactData.hours}`); }
+
+        // UTILS
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        function showNotification(msg, type) { const n = document.getElementById('notification'); n.className = 'notification ' + type; document.getElementById('notificationText').textContent = msg; n.querySelector('i').className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'; n.classList.add('active'); setTimeout(() => n.classList.remove('active'), 3000); }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.active').forEach(m => { m.classList.remove('active'); if (m.id === 'gamePlayerModal') document.getElementById('gameIframe').src = ''; }); });
+        document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if (e.target === m) { m.classList.remove('active'); if (m.id === 'gamePlayerModal') document.getElementById('gameIframe').src = ''; } }));
+        document.addEventListener('click', e => { if (!document.getElementById('userProfile')?.contains(e.target)) document.getElementById('profileDropdown')?.classList.remove('active'); });
+    </script>
+</body>
+</html>
