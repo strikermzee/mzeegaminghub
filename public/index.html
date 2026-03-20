@@ -498,6 +498,11 @@
                 <h3>Edit Contact</h3>
                 <p>Update contact information</p>
             </div>
+            <div class="quick-action-btn" style="border-color: #ef4444;" onclick="openCredentialsEditor()">
+                <div class="quick-action-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: white;"><i class="fas fa-key"></i></div>
+                <h3>Change Credentials</h3>
+                <p>Update admin login details</p>
+            </div>
         </div>
 
         <!-- STATS -->
@@ -526,12 +531,14 @@
                 </div>
                 <form onsubmit="handleLogin(event)">
                     <div class="form-group"><label>Email</label><input type="email" class="form-control" id="loginEmail" placeholder="Enter email" required></div>
-                    <div class="form-group"><label>Password</label><input type="password" class="form-control" id="loginPassword" placeholder="Enter password" required></div>
+                    <div class="form-group"><label>Password</label>
+                        <div style="position: relative;">
+                            <input type="password" class="form-control" id="loginPassword" placeholder="Enter password" required style="padding-right: 45px;">
+                            <button type="button" onclick="togglePasswordVisibility('loginPassword', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 5px;"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
                     <button type="submit" class="btn btn-primary btn-login"><i class="fas fa-sign-in-alt"></i> Login</button>
                 </form>
-                <p style="text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
-                    Demo: <strong>admin@mzee.com / admin123</strong>
-                </p>
             </div>
         </div>
     </div>
@@ -757,6 +764,46 @@
         </div>
     </div>
 
+    <!-- CREDENTIALS EDITOR MODAL -->
+    <div class="modal-overlay" id="credentialsEditorModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-key"></i> Change Admin Credentials</h2>
+                <button class="modal-close" onclick="closeModal('credentialsEditorModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="saveCredentials(event)">
+                    <div class="form-group">
+                        <label>Admin Email</label>
+                        <input type="email" class="form-control" id="adminEmail" placeholder="admin@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <div style="position: relative;">
+                            <input type="password" class="form-control" id="currentPassword" placeholder="Enter current password" required style="padding-right: 45px;">
+                            <button type="button" onclick="togglePasswordVisibility('currentPassword', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 5px;"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <div style="position: relative;">
+                            <input type="password" class="form-control" id="newPassword" placeholder="Enter new password" required style="padding-right: 45px;">
+                            <button type="button" onclick="togglePasswordVisibility('newPassword', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 5px;"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <div style="position: relative;">
+                            <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm new password" required style="padding-right: 45px;">
+                            <button type="button" onclick="togglePasswordVisibility('confirmPassword', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-secondary); cursor: pointer; padding: 5px;"><i class="fas fa-eye"></i></button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-login"><i class="fas fa-save"></i> Update Credentials</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <footer>
         <div class="footer-content">
             <div class="footer-links"><h4>MZeeGamingHub</h4><p style="color: var(--text-secondary);">Play unlimited free games online.</p></div>
@@ -860,9 +907,10 @@
         let currentCategoryId = null;
         let uploadedThumbnail = null;
 
+        const savedAdminCreds = localStorage.getItem('mzee_admin_credentials');
         const accounts = {
             users: [{ email: 'user@mzee.com', password: 'user123', name: 'Player One' }],
-            admins: [{ email: 'admin@mzee.com', password: 'admin123', name: 'Admin' }]
+            admins: [savedAdminCreds ? JSON.parse(savedAdminCreds) : { email: 'admin@mzee.com', password: 'admin123', name: 'Admin' }]
         };
 
         // INIT
@@ -1180,6 +1228,57 @@
         function openContactEditor() { document.getElementById('contactEmail').value = contactData.email; document.getElementById('contactPhone').value = contactData.phone; document.getElementById('contactAddress').value = contactData.address; document.getElementById('contactHours').value = contactData.hours; document.getElementById('socialFacebook').value = contactData.social.facebook; document.getElementById('socialTwitter').value = contactData.social.twitter; document.getElementById('socialDiscord').value = contactData.social.discord; openModal('contactEditorModal'); }
         function saveContactInfo(e) { e.preventDefault(); contactData.email = document.getElementById('contactEmail').value; contactData.phone = document.getElementById('contactPhone').value; contactData.address = document.getElementById('contactAddress').value; contactData.hours = document.getElementById('contactHours').value; contactData.social.facebook = document.getElementById('socialFacebook').value; contactData.social.twitter = document.getElementById('socialTwitter').value; contactData.social.discord = document.getElementById('socialDiscord').value; saveAllData(); closeModal('contactEditorModal'); showNotification('Contact info saved!', 'success'); }
         function openContactPage() { alert(`Contact Us\n\nEmail: ${contactData.email}\nPhone: ${contactData.phone}\nAddress: ${contactData.address}\nHours: ${contactData.hours}`); }
+
+        // PASSWORD TOGGLE
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
+
+        // CREDENTIALS EDITOR
+        function openCredentialsEditor() {
+            document.getElementById('adminEmail').value = accounts.admins[0].email;
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+            openModal('credentialsEditorModal');
+        }
+        
+        function saveCredentials(e) {
+            e.preventDefault();
+            const currentPass = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+            const newEmail = document.getElementById('adminEmail').value;
+            
+            if (currentPass !== accounts.admins[0].password) {
+                showNotification('Current password is incorrect!', 'error');
+                return;
+            }
+            if (newPass !== confirmPass) {
+                showNotification('New passwords do not match!', 'error');
+                return;
+            }
+            if (newPass.length < 6) {
+                showNotification('Password must be at least 6 characters!', 'error');
+                return;
+            }
+            
+            accounts.admins[0].email = newEmail;
+            accounts.admins[0].password = newPass;
+            
+            localStorage.setItem('mzee_admin_credentials', JSON.stringify(accounts.admins[0]));
+            
+            closeModal('credentialsEditorModal');
+            showNotification('Credentials updated successfully!', 'success');
+        }
 
         // UTILS
         function openModal(id) { document.getElementById(id).classList.add('active'); }
