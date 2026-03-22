@@ -444,6 +444,7 @@
                     </div>
                 </div>
                 <button class="btn btn-primary" id="loginBtn" onclick="openModal('loginModal')"><i class="fas fa-user"></i> Login</button>
+                <button class="btn" onclick="toggleWebsiteFullscreen()" title="Fullscreen" style="background: var(--glass); border: 1px solid var(--glass-border); padding: 0.6rem 0.8rem; margin-left: 0.5rem;"><i class="fas fa-expand" id="fullscreenIcon"></i></button>
             </div>
         </div>
     </header>
@@ -679,7 +680,10 @@
         <div class="modal modal-lg">
             <div class="modal-header">
                 <h2><i class="fas fa-play"></i> <span id="playingGameTitle">Game</span></h2>
-                <button class="modal-close" onclick="closeGamePlayer()"><i class="fas fa-times"></i></button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="modal-close" onclick="toggleFullscreen()" title="Fullscreen"><i class="fas fa-expand"></i></button>
+                    <button class="modal-close" onclick="closeGamePlayer()"><i class="fas fa-times"></i></button>
+                </div>
             </div>
             <div class="modal-body" style="padding: 0;">
                 <div class="game-iframe-container"><iframe id="gameIframe" src="" allowfullscreen></iframe></div>
@@ -1208,6 +1212,46 @@
         }
 
         function closeGamePlayer() { document.getElementById('gameIframe').src = ''; closeModal('gamePlayerModal'); }
+
+        // FULLSCREEN TOGGLE (for game iframe)
+        function toggleFullscreen() {
+            const iframe = document.getElementById('gameIframe');
+            if (iframe.requestFullscreen) {
+                iframe.requestFullscreen();
+            } else if (iframe.webkitRequestFullscreen) {
+                iframe.webkitRequestFullscreen();
+            } else if (iframe.msRequestFullscreen) {
+                iframe.msRequestFullscreen();
+            } else if (iframe.mozRequestFullScreen) {
+                iframe.mozRequestFullScreen();
+            }
+        }
+
+        // WEBSITE FULLSCREEN TOGGLE
+        function toggleWebsiteFullscreen() {
+            const icon = document.getElementById('fullscreenIcon');
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().then(() => {
+                    icon.className = 'fas fa-compress';
+                }).catch(err => {
+                    console.log('Fullscreen error:', err);
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    icon.className = 'fas fa-expand';
+                });
+            }
+        }
+
+        // Listen for fullscreen change
+        document.addEventListener('fullscreenchange', () => {
+            const icon = document.getElementById('fullscreenIcon');
+            if (document.fullscreenElement) {
+                icon.className = 'fas fa-compress';
+            } else {
+                icon.className = 'fas fa-expand';
+            }
+        });
 
         // AUTH
         function handleLogin(e) {
