@@ -376,6 +376,25 @@
             .admin-quick-actions { grid-template-columns: 1fr; }
         }
     </style>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBn5qlrVgMbwwfgHivQOKTiAqMty1vI-KY",
+            authDomain: "mzeegaminghub.firebaseapp.com",
+            projectId: "mzeegaminghub",
+            storageBucket: "mzeegaminghub.firebasestorage.app",
+            messagingSenderId: "240450696371",
+            appId: "1:240450696371:web:d77cc004f508ac25026cc6",
+            measurementId: "G-0N78V2ZP5X"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
 </head>
 <body>
     <div class="loading-screen" id="loadingScreen">
@@ -822,10 +841,11 @@
 
 
     <script>
-        // STORAGE KEY
+        // STORAGE KEY (for localStorage cache)
         const STORAGE_KEY = 'mzeegaminghub_data';
+        let firebaseLoaded = false;
         
-        // Load data from localStorage or use defaults
+        // Load data from localStorage cache first (for fast initial load)
         function loadStoredData() {
             try {
                 const saved = localStorage.getItem(STORAGE_KEY);
@@ -834,15 +854,55 @@
             return null;
         }
         
-        function saveAllData() {
+        // Save to both Firebase and localStorage
+        async function saveAllData() {
             const dataToSave = {
                 categories, games, analytics, helpData, contactData,
                 lastUpdated: new Date().toISOString()
             };
+            
+            // Save to localStorage (cache)
             localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+            
+            // Save to Firebase
+            try {
+                await db.collection('siteData').doc('main').set(dataToSave);
+                console.log('✅ Data saved to Firebase!');
+            } catch(e) {
+                console.error('Firebase save error:', e);
+            }
         }
         
-        // Initialize data
+        // Load data from Firebase
+        async function loadFromFirebase() {
+            try {
+                const doc = await db.collection('siteData').doc('main').get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    // Update local variables
+                    if (data.categories) categories = data.categories;
+                    if (data.games) games = data.games;
+                    if (data.analytics) analytics = data.analytics;
+                    if (data.helpData) helpData = data.helpData;
+                    if (data.contactData) contactData = data.contactData;
+                    // Update localStorage cache
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                    // Re-render the page
+                    renderAll();
+                    console.log('✅ Data loaded from Firebase!');
+                    firebaseLoaded = true;
+                } else {
+                    // No data in Firebase yet, save current data
+                    console.log('📤 No data in Firebase, uploading current data...');
+                    await saveAllData();
+                    firebaseLoaded = true;
+                }
+            } catch(e) {
+                console.error('Firebase load error:', e);
+            }
+        }
+        
+        // Initialize data from localStorage first (fast load)
         const storedData = loadStoredData();
         
         let categories = storedData?.categories || [
@@ -855,27 +915,14 @@
         ];
 
         let games = storedData?.games || [
-            { id: 1, title: 'Business Tycoon', categoryId: 6, thumbnail: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop', url: 'https://business-tycoon.onrender.com/', plays: 15234, badges: ['featured', 'hot'], featured: true },
-            { id: 2, title: 'Block World', categoryId: 2, thumbnail: 'https://images.unsplash.com/photo-1612287230202-1ff1d85d1bdf?w=400&h=300&fit=crop', url: 'about:blank', plays: 28456, badges: ['hot'], featured: false },
-            { id: 3, title: 'Speed Racer', categoryId: 4, thumbnail: 'https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?w=400&h=300&fit=crop', url: 'about:blank', plays: 19823, badges: ['new'], featured: false },
-            { id: 4, title: 'Puzzle Master', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=400&h=300&fit=crop', url: 'https://www.gameflare.com/embed/2048/', plays: 12456, badges: [], featured: false },
-            { id: 5, title: 'Football League', categoryId: 5, thumbnail: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&h=300&fit=crop', url: 'about:blank', plays: 22345, badges: ['hot'], featured: false },
-            { id: 6, title: 'Sky Combat', categoryId: 1, thumbnail: 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=300&fit=crop', url: 'about:blank', plays: 31245, badges: ['featured'], featured: true },
-            { id: 7, title: '2048 Classic', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1611996575749-79a3a250f948?w=400&h=300&fit=crop', url: 'https://play2048.co/', plays: 45678, badges: ['hot', 'featured'], featured: true },
-            { id: 8, title: 'Sudoku', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1580541832626-2a7131ee809f?w=400&h=300&fit=crop', url: 'https://www.gameflare.com/embed/sudoku-classic/', plays: 34521, badges: ['new'], featured: false },
-            { id: 9, title: 'Tetris', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1628277613967-6abca504571d?w=400&h=300&fit=crop', url: 'https://tetris.com/play-tetris', plays: 52341, badges: ['hot', 'featured'], featured: true },
-            { id: 10, title: 'Mahjong Connect', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1605870445919-838d190e8e1b?w=400&h=300&fit=crop', url: 'https://www.gameflare.com/embed/mahjong-connect/', plays: 28934, badges: ['hot'], featured: false },
-            { id: 11, title: 'Bubble Shooter', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop', url: 'https://www.gameflare.com/embed/bubble-shooter/', plays: 41256, badges: ['featured'], featured: false },
-            { id: 12, title: 'Chess', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1529699211952-734e80c4d42b?w=400&h=300&fit=crop', url: 'https://www.chess.com/play/computer', plays: 38456, badges: ['hot'], featured: false },
-            { id: 13, title: 'Solitaire', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1541278107931-e006523892df?w=400&h=300&fit=crop', url: 'https://www.gameflare.com/embed/solitaire-classic/', plays: 29876, badges: ['new'], featured: false },
-            { id: 14, title: 'Word Search', categoryId: 3, thumbnail: 'https://images.unsplash.com/photo-1632501641765-e568d28b0015?w=400&h=300&fit=crop', url: 'https://www.gameflare.com/embed/word-search/', plays: 18234, badges: [], featured: false }
+            { id: 1, title: 'Business Tycoon', categoryId: 6, thumbnail: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=300&fit=crop', url: 'https://business-tycoon.onrender.com/', plays: 15240, badges: ['hot', 'featured'], featured: true, description: '' }
         ];
         
         // Analytics data
         let analytics = storedData?.analytics || {
-            totalVisitors: 0,
+            totalVisitors: 6,
             registeredUsers: 0,
-            totalPlays: 0,
+            totalPlays: 11,
             dailyData: [],
             visitorLog: []
         };
@@ -893,9 +940,9 @@
         
         // Contact data
         let contactData = storedData?.contactData || {
-            email: 'support@mzeegaminghub.com',
-            phone: '+1 234 567 890',
-            address: '123 Gaming Street, Digital City',
+            email: 'mohamedzohaib.aseef@gmail.com',
+            phone: '+91 9500 687 386',
+            address: 'ELECTRA STREET, ABU DHABI',
             hours: '24/7 Support Available',
             social: { facebook: '', twitter: '', discord: '' }
         };
@@ -910,7 +957,7 @@
         const savedAdminCreds = localStorage.getItem('mzee_admin_credentials');
         const accounts = {
             users: [{ email: 'user@mzee.com', password: 'user123', name: 'Player One' }],
-            admins: [savedAdminCreds ? JSON.parse(savedAdminCreds) : { email: 'admin@mzee.com', password: 'admin123', name: 'Admin' }]
+            admins: [savedAdminCreds ? JSON.parse(savedAdminCreds) : { email: 'admin@mzee.com', password: 'welcome123', name: 'Admin' }]
         };
 
         // INIT
@@ -922,6 +969,11 @@
             document.getElementById('categoryColor').addEventListener('input', function() {
                 document.getElementById('categoryColorText').value = this.value;
             });
+            
+            // Load data from Firebase (after initial render)
+            setTimeout(() => {
+                loadFromFirebase();
+            }, 1000);
         });
         
         // VISITOR TRACKING
