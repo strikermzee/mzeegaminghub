@@ -40,6 +40,12 @@ const LOCAL_GAMES = [
     thumb: thumb('Tambola Queen', '🎱', '#3a0ca3', '#f72585'), badges: ['multiplayer'], featured: true
   },
   {
+    slug: 'ludo-champion', title: 'Ludo Champion', legacyTitle: 'Ludo Champion',
+    url: '/games/ludo-champion/', category: 'Board & Cards',
+    description: 'Classic Ludo with friends or robots - private rooms, 2-4 players.',
+    thumb: thumb('Ludo Champion', '🎲', '#0a1628', '#e63946'), badges: ['new', 'multiplayer'], featured: false
+  },
+  {
     slug: 'super-mario', title: 'Super Mario', url: '/games/super-mario/', category: 'Adventure',
     description: 'Classic side-scrolling platformer. Run, jump and stomp your way to the flag.',
     thumb: thumb('Super Mario', '🍄', '#1e6091', '#48cae4'), badges: ['classic'], featured: true
