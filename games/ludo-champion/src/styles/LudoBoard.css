@@ -1,0 +1,719 @@
+/* Ludo Board Styles - Matching Physical Board Exactly */
+
+.ludo-board {
+  display: grid;
+  grid-template-columns: 6fr 3fr 6fr;
+  grid-template-rows: 6fr 3fr 6fr;
+  width: 100%;
+  max-width: 750px;
+  aspect-ratio: 1;
+  background-color: #2d4a35;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* Home Bases - Large Hexagons */
+.home-base {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
+/* Large Hexagon Shape for Home Base */
+.home-hexagon {
+  width: 95%;
+  height: 95%;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.red-hex-bg {
+  background-color: #e53935;
+}
+
+.blue-hex-bg {
+  background-color: #2196f3;
+}
+
+.green-hex-bg {
+  background-color: #4caf50;
+}
+
+.yellow-hex-bg {
+  background-color: #ff9800;
+}
+
+.home-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 8px;
+  width: 70%;
+  height: 70%;
+}
+
+/* Pawn Slots - Dark Green Hexagons */
+.pawn-slot {
+  background-color: #2d4a35;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Pawn Pieces in Home */
+.pawn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: scale(0.7);
+}
+
+.pawn-head {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  margin-bottom: -2px;
+  z-index: 2;
+}
+
+.pawn-body {
+  width: 18px;
+  height: 20px;
+  clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+  border-radius: 0 0 4px 4px;
+}
+
+/* Board Pawns - Bigger and Clearer */
+.cell-pawns {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: 2px;
+  z-index: 10;
+}
+
+.board-pawn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: scale(1);
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));
+}
+
+.board-pawn .pawn-head {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin-bottom: -3px;
+  z-index: 2;
+  border: 2px solid rgba(0,0,0,0.3);
+}
+
+.board-pawn .pawn-body {
+  width: 20px;
+  height: 22px;
+  clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+  border-radius: 0 0 4px 4px;
+  border: 2px solid rgba(0,0,0,0.3);
+}
+
+.pawn-red .pawn-head,
+.pawn-red .pawn-body {
+  background-color: #ffcdd2;
+  border: 2px solid #b71c1c;
+}
+
+.pawn-blue .pawn-head,
+.pawn-blue .pawn-body {
+  background-color: #bbdefb;
+  border: 2px solid #0d47a1;
+}
+
+.pawn-green .pawn-head,
+.pawn-green .pawn-body {
+  background-color: #c8e6c9;
+  border: 2px solid #1b5e20;
+}
+
+.pawn-yellow .pawn-head,
+.pawn-yellow .pawn-body {
+  background-color: #fff9c4;
+  border: 2px solid #f57f17;
+}
+
+/* Path Sections */
+.path-section {
+  display: flex;
+  background-color: #2d4a35;
+}
+
+.top-path {
+  flex-direction: column;
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.left-path {
+  flex-direction: row;
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.right-path {
+  flex-direction: row;
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.bottom-path {
+  flex-direction: column;
+  grid-column: 2;
+  grid-row: 3;
+}
+
+/* Path Rows and Columns */
+.path-row {
+  display: flex;
+  flex: 1;
+}
+
+.path-col {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* Cells */
+.cell {
+  flex: 1;
+  border: 1px solid #2d4a35;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Cell Numbers - Visible */
+.cell-num {
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  font-size: 8px;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.cell.red .cell-num,
+.cell.blue .cell-num,
+.cell.green .cell-num,
+.cell.yellow .cell-num {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.cell.white {
+  background-color: #e8e8e8;
+}
+
+.cell.red {
+  background-color: #e53935;
+}
+
+.cell.blue {
+  background-color: #2196f3;
+}
+
+.cell.green {
+  background-color: #4caf50;
+}
+
+.cell.yellow {
+  background-color: #ff9800;
+}
+
+/* Home path cells */
+.cell.home-path {
+  position: relative;
+}
+
+/* Start cells - WHITE background with colored arrows */
+.start-cell {
+  position: relative;
+}
+
+.start-arrow {
+  font-size: 20px;
+  font-weight: bold;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.blue-arrow {
+  color: #2196f3;
+}
+
+.red-arrow {
+  color: #e53935;
+}
+
+.green-arrow {
+  color: #4caf50;
+}
+
+.yellow-arrow {
+  color: #ff9800;
+}
+
+/* Safe cells with colored hexagon markers - cell stays white, only hex is colored */
+.safe-hex {
+  width: 28px;
+  height: 32px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: transparent;
+}
+
+.safe-hex::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background-color: #1a1a2e;
+}
+
+.safe-hex::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: calc(100% - 6px);
+  height: calc(100% - 6px);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.safe-hex.red::after {
+  background-color: #e53935;
+}
+
+.safe-hex.blue::after {
+  background-color: #2196f3;
+}
+
+.safe-hex.green::after {
+  background-color: #4caf50;
+}
+
+.safe-hex.yellow::after {
+  background-color: #ffb300;
+}
+
+/* Straight arrows for direction cells */
+.straight-arrow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+}
+
+/* Down arrow ↓ */
+.straight-arrow.down::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 14px;
+  background-color: #1a1a2e;
+}
+
+.straight-arrow.down::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 10px solid #1a1a2e;
+}
+
+/* Up arrow ↑ */
+.straight-arrow.up::before {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 14px;
+  background-color: #1a1a2e;
+}
+
+.straight-arrow.up::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 10px solid #1a1a2e;
+}
+
+/* Right arrow → */
+.straight-arrow.right::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 6px;
+  background-color: #1a1a2e;
+}
+
+.straight-arrow.right::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 10px solid #1a1a2e;
+}
+
+/* Left arrow ← */
+.straight-arrow.left::before {
+  content: '';
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 6px;
+  background-color: #1a1a2e;
+}
+
+.straight-arrow.left::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 10px solid #1a1a2e;
+}
+
+/* Start arrows - simple colored arrows pointing direction of movement */
+.start-arrow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.start-arrow.red {
+  color: #e53935;
+}
+
+.start-arrow.blue {
+  color: #2196f3;
+}
+
+.start-arrow.green {
+  color: #4caf50;
+}
+
+.start-arrow.yellow {
+  color: #ffb300;
+}
+
+.red-safe {
+  background-color: #e53935;
+}
+
+.blue-safe {
+  background-color: #2196f3;
+}
+
+.green-safe {
+  background-color: #4caf50;
+}
+
+.yellow-safe {
+  background-color: #ff9800;
+}
+
+/* Center Home - 4 triangles with arrows like physical board */
+.center-home {
+  grid-column: 2;
+  grid-row: 2;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: transparent;
+  overflow: hidden;
+}
+
+.triangle-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.center-triangle {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.center-icon {
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  position: absolute;
+  z-index: 5;
+}
+
+/* Blue triangle - TOP */
+.blue-tri {
+  width: 100%;
+  height: 50%;
+  top: 0;
+  left: 0;
+  background: #2196f3;
+  clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
+}
+
+.blue-tri .center-icon {
+  top: 20%;
+}
+
+.blue-tri::before {
+  content: '🏠';
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 16px;
+  z-index: 5;
+}
+
+/* Red triangle - LEFT */
+.red-tri {
+  width: 50%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  background: #e53935;
+  clip-path: polygon(100% 50%, 0% 0%, 0% 100%);
+}
+
+.red-tri .center-icon {
+  left: 20%;
+}
+
+.red-tri::before {
+  content: '🏠';
+  position: absolute;
+  left: 15%;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  z-index: 5;
+}
+
+/* Green triangle - BOTTOM */
+.green-tri {
+  width: 100%;
+  height: 50%;
+  bottom: 0;
+  left: 0;
+  background: #4caf50;
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.green-tri .center-icon {
+  bottom: 20%;
+}
+
+.green-tri::before {
+  content: '🏠';
+  position: absolute;
+  bottom: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 16px;
+  z-index: 5;
+}
+
+/* Yellow triangle - RIGHT */
+.yellow-tri {
+  width: 50%;
+  height: 100%;
+  right: 0;
+  top: 0;
+  background: #ff9800;
+  clip-path: polygon(0% 50%, 100% 0%, 100% 100%);
+}
+
+.yellow-tri .center-icon {
+  right: 20%;
+}
+
+.yellow-tri::before {
+  content: '🏠';
+  position: absolute;
+  right: 15%;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  z-index: 5;
+}
+
+/* Home pawns display - pawns that reached center home */
+.home-pawns-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  z-index: 10;
+}
+
+.blue-tri .home-pawns-display {
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.red-tri .home-pawns-display {
+  left: 15%;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: column;
+}
+
+.green-tri .home-pawns-display {
+  bottom: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.yellow-tri .home-pawns-display {
+  right: 15%;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: column;
+}
+
+.home-pawn {
+  width: 16px;
+  height: 22px;
+  position: relative;
+}
+
+.home-pawn .pawn-head {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 1px solid rgba(0,0,0,0.3);
+}
+
+.home-pawn .pawn-body {
+  width: 14px;
+  height: 12px;
+  border-radius: 0 0 50% 50%;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 1px solid rgba(0,0,0,0.3);
+}
+
+.home-pawn.pawn-red .pawn-head,
+.home-pawn.pawn-red .pawn-body {
+  background: #c62828;
+}
+
+.home-pawn.pawn-blue .pawn-head,
+.home-pawn.pawn-blue .pawn-body {
+  background: #1565c0;
+}
+
+.home-pawn.pawn-green .pawn-head,
+.home-pawn.pawn-green .pawn-body {
+  background: #2e7d32;
+}
+
+.home-pawn.pawn-yellow .pawn-head,
+.home-pawn.pawn-yellow .pawn-body {
+  background: #f57f17;
+}
+
+/* Responsive */
+@media (max-width: 800px) {
+  .ludo-board {
+    max-width: 95vw;
+  }
+  
+  .home-inner {
+    gap: 4px;
+  }
+  
+  .start-arrow {
+    font-size: 12px;
+  }
+  
+  .safe-hex {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .tri-arrow {
+    font-size: 14px;
+  }
+  
+  .pawn {
+    transform: scale(0.5);
+  }
+}

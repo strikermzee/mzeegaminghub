@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/games/ludo-champion/static/css/main.f7d37bdd.css",
+    "main.js": "/games/ludo-champion/static/js/main.74798a5d.js",
+    "index.html": "/games/ludo-champion/index.html",
+    "main.f7d37bdd.css.map": "/games/ludo-champion/static/css/main.f7d37bdd.css.map",
+    "main.74798a5d.js.map": "/games/ludo-champion/static/js/main.74798a5d.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.f7d37bdd.css",
+    "static/js/main.74798a5d.js"
+  ]
+}

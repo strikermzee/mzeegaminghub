@@ -1,0 +1,25 @@
+# MZeeGamingHub runs as one long-lived Node process: it holds Socket.IO and WebSocket
+# connections open and keeps its SQLite file on disk. It needs a real server — static
+# hosting and serverless platforms cannot run it.
+services:
+  - type: web
+    name: mzee-gaming-hub
+    env: node
+    plan: free
+    # Tambola is a React app: it must be built before the server can serve it.
+    buildCommand: npm install && npm run build:tambola
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true      # signs sessions AND the tokens the games trust
+      - key: ADMIN_PASSWORD
+        sync: false              # set this yourself; never ship the default
+    disk:
+      # Accounts, games, categories and analytics live here. Without a persistent
+      # disk the database is wiped on every deploy.
+      name: hub-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1

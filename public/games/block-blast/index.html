@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Block Blast</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d0e1c; --ink:#e8eaff; --muted:#8a8fc4;
+    --line:rgba(140,150,235,.14);
+    --panel:rgba(28,30,66,.55); --panel-brd:rgba(120,130,230,.22);
+    --accent:#36d6e7; --accent-2:#b36bf5; --glow:rgba(54,214,231,.35);
+    --good:#4ade80; --bad:#fb6f84;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:
+      radial-gradient(1200px 700px at 80% -10%, rgba(179,107,245,.16), transparent 60%),
+      radial-gradient(1000px 600px at -10% 110%, rgba(54,214,231,.14), transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family:"Chakra Petch",system-ui,sans-serif;
+    min-height:100%; display:flex; flex-direction:column; align-items:center;
+    padding:18px 14px 28px; -webkit-tap-highlight-color:transparent; overflow-x:hidden;
+  }
+  header{ text-align:center; margin-bottom:14px; }
+  .title{ font-weight:700; font-size:clamp(28px,7vw,46px); letter-spacing:.06em; line-height:1; display:inline-flex; gap:.08em; }
+  .title b{ color:var(--bg); background:linear-gradient(160deg,var(--accent),#7fe9f4); padding:.04em .22em; border-radius:6px;
+    box-shadow:0 8px 22px -8px var(--glow), inset 0 2px 0 rgba(255,255,255,.5), inset 0 -3px 0 rgba(0,0,0,.18); }
+  .title span{ color:var(--bg); background:linear-gradient(160deg,var(--accent-2),#cf9cff); padding:.04em .22em; border-radius:6px;
+    box-shadow:0 8px 22px -8px rgba(179,107,245,.5), inset 0 2px 0 rgba(255,255,255,.5), inset 0 -3px 0 rgba(0,0,0,.18); }
+  .tagline{ margin-top:8px; color:var(--muted); font-size:12px; letter-spacing:.28em; text-transform:uppercase; }
+
+  .hud{ display:flex; gap:10px; margin-bottom:12px; }
+  .stat{ background:var(--panel); border:1px solid var(--panel-brd); border-radius:12px; padding:8px 16px; text-align:center; min-width:96px;
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+  .stat h2{ font-size:10px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--muted); margin-bottom:3px; }
+  .stat .val{ font-family:"JetBrains Mono",monospace; font-weight:700; font-size:22px; font-variant-numeric:tabular-nums; }
+
+  .board-wrap{ position:relative; border-radius:16px; padding:10px;
+    background:linear-gradient(180deg,rgba(20,22,52,.85),rgba(13,14,28,.9)); border:1px solid var(--panel-brd);
+    box-shadow:0 30px 80px -30px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.05); }
+  #board{ display:block; border-radius:8px; background:#090a16; touch-action:none; width:min(80vw,360px); height:min(80vw,360px); }
+
+  .hint{ color:var(--muted); font-size:12.5px; margin:12px 2px 4px; text-align:center; max-width:380px; line-height:1.5; }
+
+  .tray{ display:flex; gap:12px; margin-top:10px; align-items:stretch; }
+  .slot{ position:relative; background:var(--panel); border:1px solid var(--panel-brd); border-radius:14px; padding:8px;
+    width:104px; height:104px; display:flex; align-items:center; justify-content:center; cursor:pointer;
+    transition:border-color .12s ease, transform .08s ease, box-shadow .15s ease; }
+  .slot:hover{ border-color:rgba(120,130,230,.45); }
+  .slot.selected{ border-color:var(--accent); box-shadow:0 0 0 2px rgba(54,214,231,.35), 0 10px 26px -12px var(--glow); transform:translateY(-2px); }
+  .slot.empty{ opacity:.32; cursor:default; }
+  .slot.empty:hover{ border-color:var(--panel-brd); }
+  .slot canvas{ width:100%; height:100%; display:block; }
+
+  .actions{ margin-top:16px; display:flex; gap:10px; }
+  .btn{ font-family:"Chakra Petch",sans-serif; font-weight:600; font-size:14px; letter-spacing:.05em; color:var(--bg);
+    background:linear-gradient(160deg,var(--accent),#7fe9f4); border:none; border-radius:10px; padding:11px 22px; cursor:pointer;
+    box-shadow:0 10px 24px -10px var(--glow), inset 0 2px 0 rgba(255,255,255,.45); transition:transform .08s ease, filter .15s ease; }
+  .btn.ghost{ background:transparent; color:var(--muted); border:1px solid var(--panel-brd); box-shadow:none; }
+  .btn:hover{ filter:brightness(1.06); }
+  .btn:active{ transform:translateY(1px); }
+
+  .overlay{ position:absolute; inset:10px; border-radius:8px; background:rgba(9,10,22,.88); backdrop-filter:blur(3px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:14px; padding:18px; }
+  .overlay.hidden{ display:none; }
+  .overlay .big{ font-size:clamp(24px,6vw,34px); font-weight:700; letter-spacing:.04em; }
+  .overlay .sub{ color:var(--muted); font-size:13px; max-width:250px; line-height:1.5; }
+  .overlay .final{ font-family:"JetBrains Mono",monospace; color:var(--accent); font-size:15px; }
+
+  .namerow{ display:flex; gap:8px; }
+  .namerow.hidden,.rankmsg.hidden,.lblist.hidden,.hidden{ display:none; }
+  .namerow input{ font-family:"Chakra Petch",sans-serif; font-size:14px; padding:10px 12px; border-radius:10px;
+    border:1px solid var(--panel-brd); background:rgba(9,10,22,.6); color:var(--ink); width:150px; outline:none; }
+  .namerow input:focus{ border-color:var(--accent); }
+  .rankmsg{ font-family:"Chakra Petch",sans-serif; font-weight:600; font-size:15px; color:var(--accent); }
+  .lblist{ list-style:none; width:240px; max-width:78vw; display:flex; flex-direction:column; gap:4px; max-height:210px; overflow:auto; padding:0; }
+  .lblist li{ display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:9px;
+    background:rgba(120,130,230,.08); border:1px solid var(--line); font-size:13px; }
+  .lblist li .pos{ font-family:"JetBrains Mono",monospace; font-weight:700; min-width:26px; color:var(--muted); }
+  .lblist li .nm{ flex:1; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .lblist li .sc{ font-family:"JetBrains Mono",monospace; font-weight:700; color:var(--ink); }
+  .lblist li.you{ background:linear-gradient(160deg,rgba(54,214,231,.22),rgba(179,107,245,.18)); border-color:var(--accent); }
+  .lboard{ margin-top:14px; }
+  .lboard h2{ font-size:10px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; text-align:center; }
+
+  .praise{ position:absolute; inset:10px; display:flex; align-items:center; justify-content:center;
+    pointer-events:none; font-family:"Chakra Petch",sans-serif; font-weight:700; letter-spacing:.03em;
+    font-size:clamp(34px,11vw,58px); opacity:0; text-align:center;
+    background:linear-gradient(160deg,#7fe9f4,#fff 45%,#cf9cff); -webkit-background-clip:text; background-clip:text;
+    color:transparent; -webkit-text-fill-color:transparent;
+    filter:drop-shadow(0 4px 22px rgba(54,214,231,.55)) drop-shadow(0 2px 4px rgba(0,0,0,.4)); }
+  .praise.show{ animation:praisePop 1s ease forwards; }
+  @keyframes praisePop{
+    0%{ opacity:0; transform:scale(.5) rotate(-5deg); }
+    22%{ opacity:1; transform:scale(1.14) rotate(2deg); }
+    42%{ transform:scale(1) rotate(0); }
+    70%{ opacity:1; transform:scale(1) translateY(0); }
+    100%{ opacity:0; transform:scale(1.06) translateY(-16px); }
+  }
+
+  @media (prefers-reduced-motion:reduce){ .btn,.slot{ transition:none; } .praise.show{ animation-duration:.6s; } }
+</style>
+</head>
+<body>
+  <header>
+    <div class="title"><b>BLOCK</b><span>BLAST</span></div>
+    <div class="tagline">Pick · Place · Clear</div>
+  </header>
+
+  <div class="hud">
+    <div class="stat"><h2>Score</h2><div class="val" id="score">0</div></div>
+    <div class="stat"><h2>Best</h2><div class="val" id="best">0</div></div>
+  </div>
+
+  <div class="board-wrap">
+    <canvas id="board" width="360" height="360"></canvas>
+    <div class="praise" id="praise"></div>
+    <div class="overlay hidden" id="overlay">
+      <div class="big" id="ovTitle">No moves left</div>
+      <div class="sub" id="ovSub"></div>
+      <div class="final" id="ovFinal"></div>
+      <div class="namerow" id="nameRow">
+        <input id="nameInput" type="text" maxlength="14" placeholder="Your name" autocomplete="off">
+        <button class="btn" id="saveBtn">Save score</button>
+      </div>
+      <div class="rankmsg hidden" id="rankMsg"></div>
+      <ol class="lblist hidden" id="ovList"></ol>
+      <button class="btn hidden" id="ovBtn">Play again</button>
+    </div>
+  </div>
+
+  <div class="hint" id="hint">Pick a block below, then click a square on the grid to place it. Fill a full row or column to clear it.</div>
+
+  <div class="tray" id="tray">
+    <div class="slot" data-i="0"><canvas width="120" height="120"></canvas></div>
+    <div class="slot" data-i="1"><canvas width="120" height="120"></canvas></div>
+    <div class="slot" data-i="2"><canvas width="120" height="120"></canvas></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn ghost" id="newBtn">New game</button>
+    <button class="btn ghost" id="voiceBtn">🔊 Voice: On</button>
+  </div>
+
+  <div class="lboard card hidden" id="lboard">
+    <h2>Leaderboard</h2>
+    <ol class="lblist" id="sideList"></ol>
+  </div>
+
+<script>
+(() => {
+  "use strict";
+
+  const SIZE = 8;                 // 8 x 8 grid
+  const board = document.getElementById("board");
+  const ctx = board.getContext("2d");
+  const CELL = board.width / SIZE; // 45
+  const slots = [...document.querySelectorAll(".slot")];
+  const elScore = document.getElementById("score");
+  const elBest  = document.getElementById("best");
+  const overlay = document.getElementById("overlay");
+  const ovTitle = document.getElementById("ovTitle");
+  const ovSub   = document.getElementById("ovSub");
+  const ovFinal = document.getElementById("ovFinal");
+  const hint    = document.getElementById("hint");
+  const nameRow = document.getElementById("nameRow");
+  const nameInput = document.getElementById("nameInput");
+  const rankMsg = document.getElementById("rankMsg");
+  const ovList  = document.getElementById("ovList");
+  const ovBtn   = document.getElementById("ovBtn");
+  const lboard  = document.getElementById("lboard");
+  const sideList = document.getElementById("sideList");
+
+  const COLORS = ["#36d6e7","#f5c542","#b36bf5","#4ade80","#fb6f84","#5b8def","#f08a4b","#7fe9f4"];
+
+  const PRAISE = ["Fantastic!","Excellent!","Wow!","Beautiful!"];
+  const praiseEl = document.getElementById("praise");
+
+  // --- spoken praise (a girl's voice) ---
+  let voiceOn = true, girlVoice = null;
+  function pickVoice(){
+    if (!("speechSynthesis" in window)) return;
+    const voices = speechSynthesis.getVoices();
+    if (!voices.length) return;
+    const liked = ["samantha","victoria","zira","karen","moira","tessa","fiona","susan","ava","allison","google uk english female","google us english"];
+    girlVoice =
+      voices.find(v => /^en/i.test(v.lang) && liked.some(n => v.name.toLowerCase().includes(n))) ||
+      voices.find(v => /^en/i.test(v.lang) && /female|woman|girl/i.test(v.name)) ||
+      voices.find(v => /^en/i.test(v.lang)) || voices[0];
+  }
+  if ("speechSynthesis" in window){
+    pickVoice();
+    speechSynthesis.onvoiceschanged = pickVoice;
+  }
+  function speak(word){
+    if (!voiceOn || !("speechSynthesis" in window)) return;
+    try{
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(word.replace(/!/g,""));
+      if (girlVoice) u.voice = girlVoice;
+      u.pitch = 1.4;   // higher pitch -> brighter, girlish tone
+      u.rate  = 1.0;
+      u.volume = 1;
+      speechSynthesis.speak(u);
+    }catch(e){}
+  }
+
+  function showPraise(lines){
+    const word = lines <= 1 ? "Amazing!" : PRAISE[Math.floor(Math.random()*PRAISE.length)];
+    praiseEl.textContent = word;
+    praiseEl.classList.remove("show");
+    void praiseEl.offsetWidth;   // restart the animation
+    praiseEl.classList.add("show");
+    speak(word);
+  }
+
+  // Shapes as normalized [row,col] cells, with a spawn weight (higher = more common)
+  const SHAPES = [
+    {w:5, c:[[0,0]]},                                  // single
+    {w:5, c:[[0,0],[0,1]]},                            // 2 across
+    {w:5, c:[[0,0],[1,0]]},                            // 2 down
+    {w:4, c:[[0,0],[0,1],[0,2]]},                      // 3 across
+    {w:4, c:[[0,0],[1,0],[2,0]]},                      // 3 down
+    {w:3, c:[[0,0],[0,1],[0,2],[0,3]]},                // 4 across
+    {w:3, c:[[0,0],[1,0],[2,0],[3,0]]},                // 4 down
+    {w:2, c:[[0,0],[0,1],[0,2],[0,3],[0,4]]},          // 5 across
+    {w:2, c:[[0,0],[1,0],[2,0],[3,0],[4,0]]},          // 5 down
+    {w:4, c:[[0,0],[0,1],[1,0],[1,1]]},                // 2x2
+    {w:2, c:[[0,0],[0,1],[0,2],[1,0],[1,1],[1,2],[2,0],[2,1],[2,2]]}, // 3x3
+    {w:3, c:[[0,0],[1,0],[1,1]]},                      // small corner ↘
+    {w:3, c:[[0,1],[1,0],[1,1]]},
+    {w:3, c:[[0,0],[0,1],[1,0]]},
+    {w:3, c:[[0,0],[0,1],[1,1]]},
+    {w:2, c:[[0,0],[1,0],[2,0],[2,1]]},                // L (4)
+    {w:2, c:[[0,1],[1,1],[2,0],[2,1]]},                // J (4)
+    {w:2, c:[[0,0],[0,1],[0,2],[1,0]]},
+    {w:2, c:[[0,2],[1,0],[1,1],[1,2]]},
+    {w:2, c:[[0,0],[0,1],[0,2],[1,1]]},                // T
+    {w:2, c:[[0,1],[1,0],[1,1],[2,1]]},
+    {w:2, c:[[0,1],[0,2],[1,0],[1,1]]},                // S
+    {w:2, c:[[0,0],[0,1],[1,1],[1,2]]},                // Z
+  ];
+  const POOL = [];
+  SHAPES.forEach(s => { for (let i=0;i<s.w;i++) POOL.push(s.c); });
+
+  let grid, tray, selected, score, best = 0, hover, locked, over;
+
+  function reset(){
+    grid = Array.from({length:SIZE}, () => Array(SIZE).fill(null));
+    score = 0; selected = -1; hover = null; locked = false; over = false;
+    refillTray();
+    autoSelect();
+    updateScore();
+    drawBoard();
+    overlay.classList.add("hidden");
+    hint.textContent = "Pick a block below, then click a square on the grid to place it. Fill a full row or column to clear it.";
+  }
+
+  function randShape(){ return POOL[Math.floor(Math.random()*POOL.length)]; }
+  function refillTray(){
+    tray = [0,1,2].map(() => ({ cells: randShape(), color: COLORS[Math.floor(Math.random()*COLORS.length)] }));
+    drawTray();
+  }
+
+  function autoSelect(){
+    selected = tray.findIndex(p => p);
+    paintSelection();
+  }
+
+  // ---- drawing helpers ----
+  function roundRect(c,x,y,w,h,r){ c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
+  function bevel(c,px,py,s,color,alpha=1){
+    c.globalAlpha=alpha; c.fillStyle=color; roundRect(c,px+1,py+1,s-2,s-2,Math.max(3,s*0.14)); c.fill();
+    c.globalAlpha=alpha*0.5; c.fillStyle="rgba(255,255,255,.85)";
+    c.beginPath(); c.moveTo(px+2,py+2); c.lineTo(px+s-2,py+2); c.lineTo(px+s-6,py+6); c.lineTo(px+6,py+6); c.lineTo(px+6,py+s-6); c.lineTo(px+2,py+s-2); c.closePath(); c.fill();
+    c.globalAlpha=alpha*0.32; c.fillStyle="rgba(0,0,0,.9)";
+    c.beginPath(); c.moveTo(px+s-2,py+2); c.lineTo(px+s-2,py+s-2); c.lineTo(px+2,py+s-2); c.lineTo(px+6,py+s-6); c.lineTo(px+s-6,py+s-6); c.lineTo(px+s-6,py+6); c.closePath(); c.fill();
+    c.globalAlpha=1;
+  }
+
+  function drawBoard(){
+    ctx.clearRect(0,0,board.width,board.height);
+    ctx.strokeStyle="rgba(140,150,235,.08)"; ctx.lineWidth=1;
+    for (let i=1;i<SIZE;i++){
+      ctx.beginPath(); ctx.moveTo(i*CELL,0); ctx.lineTo(i*CELL,board.height); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,i*CELL); ctx.lineTo(board.width,i*CELL); ctx.stroke();
+    }
+    for (let r=0;r<SIZE;r++) for (let cc=0;cc<SIZE;cc++){
+      if (grid[r][cc]) bevel(ctx, cc*CELL, r*CELL, CELL, grid[r][cc]);
+    }
+    // placement preview
+    if (selected>=0 && tray[selected] && hover){
+      const p = tray[selected];
+      const ok = canPlace(p.cells, hover.r, hover.c);
+      ctx.shadowColor = ok ? p.color : "var(--bad)"; ctx.shadowBlur = ok?10:0;
+      for (const [dr,dc] of p.cells){
+        const r=hover.r+dr, c=hover.c+dc;
+        if (r<0||c<0||r>=SIZE||c>=SIZE) continue;
+        if (ok){ bevel(ctx, c*CELL, r*CELL, CELL, p.color, .55); }
+        else {
+          ctx.globalAlpha=.55; ctx.fillStyle="rgba(251,111,132,.35)";
+          roundRect(ctx,c*CELL+2,r*CELL+2,CELL-4,CELL-4,6); ctx.fill();
+          ctx.globalAlpha=1;
+        }
+      }
+      ctx.shadowBlur=0;
+    }
+  }
+
+  function drawPieceCanvas(cv, piece, dim=false){
+    const c = cv.getContext("2d");
+    c.clearRect(0,0,cv.width,cv.height);
+    if (!piece) return;
+    let maxR=0,maxC=0;
+    for (const [r,cc] of piece.cells){ maxR=Math.max(maxR,r); maxC=Math.max(maxC,cc); }
+    const cols=maxC+1, rows=maxR+1;
+    const pad=12, avail=cv.width-pad*2;
+    const s=Math.min(28, avail/Math.max(cols,rows));
+    const ox=(cv.width - cols*s)/2, oy=(cv.height - rows*s)/2;
+    for (const [r,cc] of piece.cells) bevel(c, ox+cc*s, oy+r*s, s, dim?"#4a4f70":piece.color, dim?.6:1);
+  }
+
+  function drawTray(){
+    slots.forEach((slot,i) => {
+      const cv = slot.querySelector("canvas");
+      drawPieceCanvas(cv, tray[i]);
+      slot.classList.toggle("empty", !tray[i]);
+    });
+  }
+  function paintSelection(){
+    slots.forEach((slot,i)=> slot.classList.toggle("selected", i===selected && !!tray[i]));
+  }
+
+  // ---- logic ----
+  function canPlace(cells, r0, c0){
+    for (const [dr,dc] of cells){
+      const r=r0+dr, c=c0+dc;
+      if (r<0||c<0||r>=SIZE||c>=SIZE) return false;
+      if (grid[r][c]) return false;
+    }
+    return true;
+  }
+  function canPlaceAnywhere(cells){
+    for (let r=0;r<SIZE;r++) for (let c=0;c<SIZE;c++) if (canPlace(cells,r,c)) return true;
+    return false;
+  }
+
+  function place(r0,c0){
+    if (locked || over || selected<0 || !tray[selected]) return;
+    const p = tray[selected];
+    if (!canPlace(p.cells, r0, c0)) return;
+    for (const [dr,dc] of p.cells) grid[r0+dr][c0+dc] = p.color;
+    score += p.cells.length;
+    tray[selected] = null;
+    drawTray();
+
+    const cleared = findClears();
+    if (cleared.rows.length || cleared.cols.length){
+      animateClear(cleared);
+    } else {
+      afterPlace();
+    }
+  }
+
+  function findClears(){
+    const rows=[], cols=[];
+    for (let r=0;r<SIZE;r++) if (grid[r].every(x=>x)) rows.push(r);
+    for (let c=0;c<SIZE;c++){ let full=true; for (let r=0;r<SIZE;r++) if(!grid[r][c]){full=false;break;} if(full) cols.push(c); }
+    return {rows,cols};
+  }
+
+  function animateClear({rows,cols}){
+    locked = true;
+    showPraise(rows.length + cols.length);
+    // flash bright
+    drawBoard();
+    ctx.save();
+    rows.forEach(r=>{ for(let c=0;c<SIZE;c++) bevel(ctx,c*CELL,r*CELL,CELL,"#ffffff",.95); });
+    cols.forEach(c=>{ for(let r=0;r<SIZE;r++) bevel(ctx,c*CELL,r*CELL,CELL,"#ffffff",.95); });
+    ctx.restore();
+
+    setTimeout(() => {
+      const cells = new Set();
+      rows.forEach(r=>{ for(let c=0;c<SIZE;c++) cells.add(r+","+c); });
+      cols.forEach(c=>{ for(let r=0;r<SIZE;r++) cells.add(r+","+c); });
+      cells.forEach(k=>{ const [r,c]=k.split(",").map(Number); grid[r][c]=null; });
+      const lines = rows.length + cols.length;
+      score += 10 * lines * lines; // 1→10, 2→40, 3→90...
+      locked = false;
+      afterPlace();
+    }, 140);
+  }
+
+  function afterPlace(){
+    updateScore();
+    if (tray.every(p => !p)){ refillTray(); }
+    autoSelect();
+    drawBoard();
+    checkGameOver();
+  }
+
+  // --- leaderboard (kept for this play session) ---
+  const leaderboard = [];
+  let playerSeq = 0, lastName = "";
+
+  function ordinal(n){ const s=["th","st","nd","rd"], v=n%100; return n + (s[(v-20)%10] || s[v] || s[0]); }
+  function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+  function renderList(ol, sorted, current){
+    ol.innerHTML = "";
+    const medals = ["🥇","🥈","🥉"];
+    sorted.slice(0,8).forEach((e,i)=>{
+      const li = document.createElement("li");
+      if (e===current) li.classList.add("you");
+      li.innerHTML = `<span class="pos">${medals[i]||("#"+(i+1))}</span><span class="nm">${escapeHtml(e.name)}</span><span class="sc">${e.score}</span>`;
+      ol.appendChild(li);
+    });
+    const idx = current ? sorted.indexOf(current) : -1;
+    if (idx >= 8){
+      const li = document.createElement("li"); li.classList.add("you");
+      li.innerHTML = `<span class="pos">#${idx+1}</span><span class="nm">${escapeHtml(current.name)}</span><span class="sc">${current.score}</span>`;
+      ol.appendChild(li);
+    }
+  }
+
+  function saveScore(){
+    if (!over) return;
+    let name = nameInput.value.trim();
+    if (!name) name = "Player " + (++playerSeq);
+    lastName = name;
+    const entry = { name, score };
+    leaderboard.push(entry);
+    const sorted = [...leaderboard].sort((a,b)=> b.score - a.score);
+    const rank = sorted.indexOf(entry) + 1;
+    rankMsg.textContent = `${name}, you placed ${ordinal(rank)} of ${leaderboard.length}!`;
+    renderList(ovList, sorted, entry);
+    renderList(sideList, sorted, entry);
+    nameRow.classList.add("hidden");
+    rankMsg.classList.remove("hidden");
+    ovList.classList.remove("hidden");
+    ovBtn.classList.remove("hidden");
+    lboard.classList.remove("hidden");
+  }
+
+  function checkGameOver(){
+    const anyMove = tray.some(p => p && canPlaceAnywhere(p.cells));
+    if (!anyMove){
+      over = true;
+      if (score > best) best = score;
+      updateScore();
+      ovTitle.textContent = "No moves left";
+      ovSub.textContent = "Enter your name to take your spot on the board.";
+      ovFinal.textContent = `Your score: ${score}`;
+      nameInput.value = lastName;
+      nameRow.classList.remove("hidden");
+      rankMsg.classList.add("hidden");
+      ovList.classList.add("hidden");
+      ovBtn.classList.add("hidden");
+      overlay.classList.remove("hidden");
+      setTimeout(()=> nameInput.focus(), 60);
+    }
+  }
+
+  function updateScore(){
+    elScore.textContent = score;
+    if (score > best) best = score;
+    elBest.textContent = best;
+  }
+
+  // ---- input ----
+  function cellFromPoint(clientX, clientY){
+    const rect = board.getBoundingClientRect();
+    const x = (clientX-rect.left) * (board.width/rect.width);
+    const y = (clientY-rect.top)  * (board.height/rect.height);
+    return { r:Math.floor(y/CELL), c:Math.floor(x/CELL) };
+  }
+
+  board.addEventListener("mousemove", (e) => {
+    if (over) return;
+    hover = cellFromPoint(e.clientX, e.clientY);
+    drawBoard();
+  });
+  board.addEventListener("mouseleave", () => { hover=null; drawBoard(); });
+  board.addEventListener("click", (e) => {
+    const {r,c} = cellFromPoint(e.clientX, e.clientY);
+    hover = {r,c};
+    place(r,c);
+  });
+
+  // touch: move to preview, lift to place
+  board.addEventListener("touchstart", (e)=>{ if(over)return; const t=e.touches[0]; hover=cellFromPoint(t.clientX,t.clientY); drawBoard(); }, {passive:true});
+  board.addEventListener("touchmove",  (e)=>{ if(over)return; const t=e.touches[0]; hover=cellFromPoint(t.clientX,t.clientY); drawBoard(); }, {passive:true});
+  board.addEventListener("touchend",   (e)=>{ if(over||!hover)return; place(hover.r,hover.c); }, {passive:true});
+
+  slots.forEach((slot,i)=>{
+    slot.addEventListener("click", ()=>{
+      if (over || !tray[i]) return;
+      selected = i; paintSelection(); drawBoard();
+    });
+  });
+
+  document.getElementById("newBtn").addEventListener("click", reset);
+  document.getElementById("ovBtn").addEventListener("click", reset);
+  document.getElementById("saveBtn").addEventListener("click", saveScore);
+  nameInput.addEventListener("keydown", (e)=>{ if (e.key === "Enter") saveScore(); });
+
+  const voiceBtn = document.getElementById("voiceBtn");
+  voiceBtn.addEventListener("click", () => {
+    voiceOn = !voiceOn;
+    voiceBtn.textContent = voiceOn ? "🔊 Voice: On" : "🔇 Voice: Off";
+    if (!voiceOn && "speechSynthesis" in window) speechSynthesis.cancel();
+  });
+
+  reset();
+})();
+</script>
+</body>
+</html>

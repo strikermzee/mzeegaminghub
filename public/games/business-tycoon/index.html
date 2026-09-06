@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business Tycoon · MZeeGamingHub</title>
+<style>
+  :root { --primary:#00f0ff; --bg:#080a12; --text:#e9edf5; --muted:#8b95a5; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background:radial-gradient(circle at 20% 10%, #1b2838 0%, var(--bg) 60%);
+    color:var(--text); font-family:'Segoe UI',system-ui,-apple-system,sans-serif; padding:24px;
+  }
+  .card { text-align:center; max-width:420px; }
+  .mark { font-size:64px; line-height:1; margin-bottom:20px; }
+  h1 { font-size:1.55rem; letter-spacing:.5px; margin-bottom:10px; }
+  p { color:var(--muted); font-size:.95rem; line-height:1.6; }
+  .spinner {
+    width:38px; height:38px; margin:26px auto 0; border-radius:50%;
+    border:3px solid rgba(0,240,255,.18); border-top-color:var(--primary);
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .err { display:none; margin-top:22px; }
+  .err p { color:#ff8080; }
+  .btn {
+    display:inline-block; margin-top:18px; padding:12px 26px; border-radius:10px;
+    background:var(--primary); color:#04121a; font-weight:700; text-decoration:none;
+    border:none; cursor:pointer; font-size:.95rem;
+  }
+  @media (prefers-reduced-motion:reduce) { .spinner { animation-duration:3s; } }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="mark" aria-hidden="true">🏙️</div>
+    <h1>Business Tycoon</h1>
+    <p id="status">Signing you in with your MZee account…</p>
+    <div class="spinner" id="spinner" role="status" aria-label="Loading"></div>
+    <div class="err" id="err">
+      <p id="errText">Could not start the game.</p>
+      <a class="btn" href="/">Back to MZeeGamingHub</a>
+    </div>
+  </div>
+
+<script>
+// This game no longer has its own sign-in. It borrows the hub session: one login, every game.
+(async function () {
+  const HERE = '/games/business-tycoon/';
+  function fail(msg) {
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('status').textContent = '';
+    document.getElementById('errText').textContent = msg;
+    document.getElementById('err').style.display = 'block';
+  }
+  try {
+    const r = await fetch('/api/auth/game-token', { credentials: 'same-origin' });
+    if (r.status === 401) {
+      location.replace('/login.html?next=' + encodeURIComponent(HERE));
+      return;
+    }
+    if (!r.ok) return fail('The hub could not issue a game session. Try again in a moment.');
+    const { token, user } = await r.json();
+    sessionStorage.setItem('token', token);
+    sessionStorage.setItem('username', user.name || user.username);
+    sessionStorage.setItem('userId', user.id);
+    location.replace('./gamemode.html');
+  } catch (e) {
+    fail('Network problem reaching MZeeGamingHub. Check your connection and retry.');
+  }
+})();
+</script>
+</body>
+</html>

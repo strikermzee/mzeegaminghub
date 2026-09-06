@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in · MZeeGamingHub</title>
+<meta name="description" content="One MZee account for every game on MZeeGamingHub.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --primary:#00f0ff; --secondary:#ff00e5; --accent:#39ff14;
+    --bg:#05070f; --panel:rgba(16,20,32,.86); --border:rgba(255,255,255,.10);
+    --text:#e9edf5; --muted:#8b95a5; --danger:#ff6b6b;
+    --glow:0 0 24px rgba(0,240,255,.32);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    min-height:100vh; font-family:'Rajdhani',system-ui,sans-serif; color:var(--text);
+    background:var(--bg); display:grid; place-items:center; padding:24px; overflow-x:hidden;
+  }
+  /* Ambient background */
+  body::before,body::after{
+    content:''; position:fixed; border-radius:50%; filter:blur(90px); z-index:-1; opacity:.5;
+  }
+  body::before{width:520px;height:520px;background:#00f0ff33;top:-160px;left:-140px}
+  body::after{width:560px;height:560px;background:#ff00e533;bottom:-200px;right:-160px}
+  .grid{
+    position:fixed; inset:0; z-index:-1; opacity:.35;
+    background-image:linear-gradient(rgba(0,240,255,.05) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(0,240,255,.05) 1px,transparent 1px);
+    background-size:52px 52px; mask-image:radial-gradient(circle at 50% 40%,#000 30%,transparent 78%);
+  }
+
+  .wrap{width:100%;max-width:440px}
+  .brand{text-align:center;margin-bottom:26px}
+  .logo{
+    display:inline-grid;place-items:center;width:74px;height:74px;border-radius:20px;
+    background:linear-gradient(135deg,var(--primary),var(--secondary));
+    font-family:'Orbitron',sans-serif;font-weight:800;font-size:1.05rem;color:#04121a;
+    box-shadow:var(--glow); margin-bottom:14px;
+  }
+  .brand h1{font-family:'Orbitron',sans-serif;font-size:1.6rem;letter-spacing:1px}
+  .brand p{color:var(--muted);font-size:.98rem;margin-top:6px}
+
+  .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:20px;
+    padding:30px 28px; backdrop-filter:blur(14px);
+    box-shadow:0 24px 60px rgba(0,0,0,.55);
+  }
+
+  .tabs{display:flex;gap:8px;background:rgba(255,255,255,.04);padding:5px;border-radius:12px;margin-bottom:24px}
+  .tab{
+    flex:1;padding:11px;border:none;border-radius:9px;background:transparent;color:var(--muted);
+    font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;cursor:pointer;transition:.18s;
+  }
+  .tab[aria-selected="true"]{background:rgba(0,240,255,.14);color:var(--primary);box-shadow:inset 0 0 0 1px rgba(0,240,255,.35)}
+
+  .field{margin-bottom:16px}
+  label{display:block;font-size:.86rem;font-weight:600;color:var(--muted);margin-bottom:7px;letter-spacing:.4px;text-transform:uppercase}
+  .control{position:relative}
+  input{
+    width:100%;padding:13px 15px;border-radius:11px;border:1px solid var(--border);
+    background:rgba(255,255,255,.04);color:var(--text);font-family:inherit;font-size:1rem;transition:.18s;
+  }
+  input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(0,240,255,.15)}
+  input::placeholder{color:#5c6577}
+  .peek{
+    position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;
+    color:var(--muted);cursor:pointer;padding:7px 9px;font-size:.85rem;font-family:inherit;font-weight:600;
+  }
+  .peek:hover{color:var(--primary)}
+
+  .btn{
+    width:100%;padding:14px;border:none;border-radius:11px;cursor:pointer;
+    font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.05rem;letter-spacing:.5px;transition:.18s;
+  }
+  .btn-primary{background:linear-gradient(135deg,var(--primary),#00b8d4);color:#04121a;box-shadow:var(--glow)}
+  .btn-primary:hover:not(:disabled){transform:translateY(-2px)}
+  .btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none}
+  .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);margin-top:10px}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+
+  .divider{display:flex;align-items:center;gap:12px;margin:20px 0 4px;color:var(--muted);font-size:.85rem}
+  .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+  .msg{
+    display:none;padding:11px 14px;border-radius:10px;font-size:.93rem;margin-bottom:16px;line-height:1.45;
+  }
+  .msg.error{display:block;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.35);color:var(--danger)}
+  .msg.ok{display:block;background:rgba(57,255,20,.10);border:1px solid rgba(57,255,20,.32);color:var(--accent)}
+
+  .demo{
+    margin-top:22px;padding:13px 15px;border-radius:11px;border:1px dashed var(--border);
+    font-size:.86rem;color:var(--muted);line-height:1.7;
+  }
+  .demo b{color:var(--text);font-weight:600}
+  .demo code{color:var(--primary);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85rem}
+
+  .foot{text-align:center;margin-top:20px;color:var(--muted);font-size:.85rem}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  @media (max-width:480px){ .card{padding:24px 20px} .brand h1{font-size:1.35rem} }
+  @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<div class="grid" aria-hidden="true"></div>
+
+<div class="wrap">
+  <div class="brand">
+    <div class="logo">Mzee</div>
+    <h1>MZeeGamingHub</h1>
+    <p>One account. Every game.</p>
+  </div>
+
+  <div class="card">
+    <div class="tabs" role="tablist">
+      <button class="tab" id="tabSignin" role="tab" aria-selected="true" aria-controls="paneSignin" onclick="switchTab('signin')">Sign in</button>
+      <button class="tab" id="tabSignup" role="tab" aria-selected="false" aria-controls="paneSignup" onclick="switchTab('signup')">Create account</button>
+    </div>
+
+    <div class="msg" id="msg" role="alert" aria-live="polite"></div>
+
+    <!-- SIGN IN -->
+    <form id="paneSignin" role="tabpanel" aria-labelledby="tabSignin" onsubmit="doLogin(event)">
+      <div class="field">
+        <label for="liId">Username or email</label>
+        <input id="liId" name="username" autocomplete="username" placeholder="admin" required>
+      </div>
+      <div class="field">
+        <label for="liPw">Password</label>
+        <div class="control">
+          <input id="liPw" name="password" type="password" autocomplete="current-password" placeholder="Your password" required style="padding-right:64px">
+          <button type="button" class="peek" onclick="peek('liPw',this)" aria-label="Show password">Show</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" type="submit" id="liBtn">Sign in &amp; play</button>
+    </form>
+
+    <!-- SIGN UP -->
+    <form id="paneSignup" role="tabpanel" aria-labelledby="tabSignup" onsubmit="doRegister(event)" hidden>
+      <div class="field">
+        <label for="suName">Display name</label>
+        <input id="suName" name="name" autocomplete="nickname" placeholder="How other players see you">
+      </div>
+      <div class="field">
+        <label for="suUser">Username</label>
+        <input id="suUser" name="username" autocomplete="username" placeholder="At least 3 characters" required minlength="3">
+      </div>
+      <div class="field">
+        <label for="suEmail">Email <span style="text-transform:none;font-weight:400">(optional)</span></label>
+        <input id="suEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label for="suPw">Password</label>
+        <div class="control">
+          <input id="suPw" name="password" type="password" autocomplete="new-password" placeholder="At least 6 characters" required minlength="6" style="padding-right:64px">
+          <button type="button" class="peek" onclick="peek('suPw',this)" aria-label="Show password">Show</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" type="submit" id="suBtn">Create account &amp; play</button>
+    </form>
+
+    <div class="divider">or</div>
+    <button class="btn btn-ghost" onclick="doGuest()" id="guestBtn">Continue as guest</button>
+
+    <div class="demo">
+      <b>Demo accounts</b><br>
+      Admin — <code>admin</code> / <code>welcome123</code><br>
+      Player — <code>player1</code> / <code>user123</code>
+    </div>
+  </div>
+
+  <p class="foot">Signing in here signs you into every game on the site.</p>
+</div>
+
+<script>
+// Where to land after signing in. Only same-site paths are honoured, so a crafted
+// ?next= cannot bounce anyone to another origin.
+function safeNext() {
+  const raw = new URLSearchParams(location.search).get('next') || '/';
+  try {
+    const u = new URL(raw, location.origin);
+    if (u.origin !== location.origin) return '/';
+    if (u.pathname === '/login.html') return '/';
+    return u.pathname + u.search + u.hash;
+  } catch { return '/'; }
+}
+
+function switchTab(which) {
+  const signin = which === 'signin';
+  document.getElementById('tabSignin').setAttribute('aria-selected', signin);
+  document.getElementById('tabSignup').setAttribute('aria-selected', !signin);
+  document.getElementById('paneSignin').hidden = !signin;
+  document.getElementById('paneSignup').hidden = signin;
+  clearMsg();
+  (signin ? document.getElementById('liId') : document.getElementById('suUser')).focus();
+}
+
+function peek(id, btn) {
+  const el = document.getElementById(id);
+  const showing = el.type === 'text';
+  el.type = showing ? 'password' : 'text';
+  btn.textContent = showing ? 'Show' : 'Hide';
+  btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+}
+
+const msgEl = document.getElementById('msg');
+function showMsg(text, kind) { msgEl.textContent = text; msgEl.className = 'msg ' + kind; }
+function clearMsg() { msgEl.textContent = ''; msgEl.className = 'msg'; }
+
+function busy(btn, on, label) {
+  btn.disabled = on;
+  if (on) { btn.dataset.label = btn.textContent; btn.textContent = label; }
+  else if (btn.dataset.label) { btn.textContent = btn.dataset.label; }
+}
+
+async function post(url, body) {
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify(body)
+  });
+  let data = {};
+  try { data = await r.json(); } catch {}
+  if (!r.ok) throw new Error(data.error || 'Something went wrong. Please try again.');
+  return data;
+}
+
+async function doLogin(e) {
+  e.preventDefault();
+  clearMsg();
+  const btn = document.getElementById('liBtn');
+  busy(btn, true, 'Signing in…');
+  try {
+    await post('/api/auth/login', {
+      identifier: document.getElementById('liId').value.trim(),
+      password: document.getElementById('liPw').value
+    });
+    showMsg('Welcome back! Taking you in…', 'ok');
+    location.replace(safeNext());
+  } catch (err) {
+    showMsg(err.message, 'error');
+    busy(btn, false);
+  }
+}
+
+async function doRegister(e) {
+  e.preventDefault();
+  clearMsg();
+  const btn = document.getElementById('suBtn');
+  busy(btn, true, 'Creating account…');
+  try {
+    await post('/api/auth/register', {
+      name: document.getElementById('suName').value.trim(),
+      username: document.getElementById('suUser').value.trim(),
+      email: document.getElementById('suEmail').value.trim(),
+      password: document.getElementById('suPw').value
+    });
+    showMsg('Account created. Taking you in…', 'ok');
+    location.replace(safeNext());
+  } catch (err) {
+    showMsg(err.message, 'error');
+    busy(btn, false);
+  }
+}
+
+async function doGuest() {
+  clearMsg();
+  const btn = document.getElementById('guestBtn');
+  busy(btn, true, 'Setting up…');
+  try {
+    const name = (document.getElementById('suName').value || '').trim();
+    await post('/api/auth/guest', { name });
+    location.replace(safeNext());
+  } catch (err) {
+    showMsg(err.message, 'error');
+    busy(btn, false);
+  }
+}
+
+// Already signed in? Don't make them do it twice.
+fetch('/api/auth/me', { credentials: 'same-origin' })
+  .then((r) => { if (r.ok) location.replace(safeNext()); })
+  .catch(() => {});
+</script>
+</body>
+</html>

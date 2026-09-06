@@ -1,0 +1,283 @@
+{
+  "analytics": {
+    "totalVisitors": 25,
+    "visitorLog": [
+      {
+        "timestamp": "2026-03-20T19:06:55.833Z",
+        "date": "2026-03-20"
+      },
+      {
+        "date": "2026-03-20",
+        "timestamp": "2026-03-20T19:44:02.554Z"
+      },
+      {
+        "timestamp": "2026-03-20T19:56:41.894Z",
+        "date": "2026-03-20"
+      },
+      {
+        "date": "2026-03-20",
+        "timestamp": "2026-03-20T19:58:19.400Z"
+      },
+      {
+        "date": "2026-03-20",
+        "timestamp": "2026-03-20T19:59:19.986Z"
+      },
+      {
+        "date": "2026-03-20",
+        "timestamp": "2026-03-20T20:28:12.960Z"
+      },
+      {
+        "timestamp": "2026-03-21T00:03:57.595Z",
+        "date": "2026-03-21"
+      },
+      {
+        "timestamp": "2026-03-21T18:42:12.812Z",
+        "date": "2026-03-21"
+      },
+      {
+        "date": "2026-03-22",
+        "timestamp": "2026-03-22T04:37:51.175Z"
+      },
+      {
+        "date": "2026-03-22",
+        "timestamp": "2026-03-22T09:32:59.929Z"
+      },
+      {
+        "date": "2026-03-23",
+        "timestamp": "2026-03-23T17:17:43.177Z"
+      },
+      {
+        "timestamp": "2026-03-24T13:35:37.297Z",
+        "date": "2026-03-24"
+      },
+      {
+        "date": "2026-03-25",
+        "timestamp": "2026-03-25T12:52:15.711Z"
+      },
+      {
+        "date": "2026-03-25",
+        "timestamp": "2026-03-25T13:00:18.742Z"
+      },
+      {
+        "date": "2026-03-25",
+        "timestamp": "2026-03-25T15:16:23.692Z"
+      },
+      {
+        "timestamp": "2026-03-25T15:34:41.100Z",
+        "date": "2026-03-25"
+      },
+      {
+        "timestamp": "2026-03-28T13:03:42.851Z",
+        "date": "2026-03-28"
+      },
+      {
+        "timestamp": "2026-04-01T15:58:25.026Z",
+        "date": "2026-04-01"
+      },
+      {
+        "timestamp": "2026-04-02T05:30:50.534Z",
+        "date": "2026-04-02"
+      },
+      {
+        "timestamp": "2026-04-02T16:46:51.020Z",
+        "date": "2026-04-02"
+      },
+      {
+        "timestamp": "2026-05-02T07:49:26.257Z",
+        "date": "2026-05-02"
+      },
+      {
+        "timestamp": "2026-05-02T11:37:41.876Z",
+        "date": "2026-05-02"
+      },
+      {
+        "date": "2026-05-24",
+        "timestamp": "2026-05-24T19:36:53.360Z"
+      },
+      {
+        "timestamp": "2026-09-06T06:45:41.813Z",
+        "date": "2026-09-06"
+      },
+      {
+        "date": "2026-09-06",
+        "timestamp": "2026-09-06T06:49:59.015Z"
+      }
+    ],
+    "registeredUsers": 0,
+    "dailyData": [
+      {
+        "date": "2026-03-20",
+        "visitors": 6,
+        "plays": 11
+      },
+      {
+        "visitors": 2,
+        "date": "2026-03-21",
+        "plays": 1
+      },
+      {
+        "date": "2026-03-22",
+        "visitors": 2,
+        "plays": 6
+      },
+      {
+        "date": "2026-03-23",
+        "plays": 5,
+        "visitors": 1
+      },
+      {
+        "plays": 5,
+        "visitors": 1,
+        "date": "2026-03-24"
+      },
+      {
+        "visitors": 4,
+        "plays": 11,
+        "date": "2026-03-25"
+      },
+      {
+        "date": "2026-03-28",
+        "visitors": 1,
+        "plays": 1
+      },
+      {
+        "visitors": 1,
+        "date": "2026-04-01",
+        "plays": 1
+      },
+      {
+        "visitors": 2,
+        "plays": 6,
+        "date": "2026-04-02"
+      },
+      {
+        "visitors": 2,
+        "date": "2026-05-02",
+        "plays": 4
+      },
+      {
+        "visitors": 1,
+        "date": "2026-05-24",
+        "plays": 1
+      },
+      {
+        "visitors": 2,
+        "plays": 6,
+        "date": "2026-09-06"
+      }
+    ],
+    "totalPlays": 58
+  },
+  "contactData": {
+    "social": {
+      "discord": "",
+      "twitter": "",
+      "facebook": ""
+    },
+    "hours": "24/7 Support Available",
+    "phone": "+91 9500 687 386",
+    "email": "mohamedzohaib.aseef@gmail.com",
+    "address": "ELECTRA STREET, ABU DHABI "
+  },
+  "games": [
+    {
+      "plays": 15271,
+      "featured": true,
+      "title": "Business Tycoon",
+      "categoryId": 6,
+      "thumbnail": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIiB2aWV3Qm94PSIwIDAgNTAwIDUwMCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImRhcmtCZyIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMwZDFiMmEiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSI1MCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxYjI4MzgiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMGQxYjJhIi8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJnbG93UHVycGxlIiBjeD0iMTUlIiBjeT0iMTUlIiByPSI0MCUiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojNmIyZDdiO3N0b3Atb3BhY2l0eTowLjUiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojNmIyZDdiO3N0b3Atb3BhY2l0eTowIi8+CiAgICA8L3JhZGlhbEdyYWRpZW50PgogICAgPHJhZGlhbEdyYWRpZW50IGlkPSJnbG93Q3lhbiIgY3g9Ijg1JSIgY3k9Ijg1JSIgcj0iMzUlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzA4OTFiMjtzdG9wLW9wYWNpdHk6MC40Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzA4OTFiMjtzdG9wLW9wYWNpdHk6MCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxyYWRpYWxHcmFkaWVudCBpZD0iZ2xvd0N5YW5TbWFsbCIgY3g9IjUwJSIgY3k9IjUwJSIgcj0iNTAlIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzA4OTFiMjtzdG9wLW9wYWNpdHk6MC4zIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzA4OTFiMjtzdG9wLW9wYWNpdHk6MCIvPgogICAgPC9yYWRpYWxHcmFkaWVudD4KICAgIDxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+CiAgICAgIEBpbXBvcnQgdXJsKCdodHRwczovL2ZvbnRzLmdvb2dsZWFwaXMuY29tL2NzczI/ZmFtaWx5PUZyZWRva2ErT25lJmFtcDtmYW1pbHk9UXVpY2tzYW5kOndnaHRANTAwOzYwMDs3MDAmYW1wO2Rpc3BsYXk9c3dhcCcpOwogICAgICAubWFpbi10ZXh0IHsgZm9udC1mYW1pbHk6ICdGcmVkb2thIE9uZScsIGN1cnNpdmU7IGZpbGw6ICNmODcxNzE7IH0KICAgICAgLnN1Yi10ZXh0IHsgZm9udC1mYW1pbHk6ICdRdWlja3NhbmQnLCBzYW5zLXNlcmlmOyBmb250LXdlaWdodDogNjAwOyBmaWxsOiAjMjJkM2QxOyB9CiAgICAgIC5temVlLXRleHQgeyBmb250LWZhbWlseTogJ1F1aWNrc2FuZCcsIHNhbnMtc2VyaWY7IGZvbnQtd2VpZ2h0OiA1MDA7IGZpbGw6ICMyMmQzZDE7IGZvbnQtc3R5bGU6IGl0YWxpYzsgfQogICAgICAucnVwZWUtdGV4dCB7IGZvbnQtZmFtaWx5OiAnRnJlZG9rYSBPbmUnLCBjdXJzaXZlOyBmaWxsOiAjYTc4YmZhOyB9CiAgICA8L3N0eWxlPgogIDwvZGVmcz4KICAKICA8IS0tIEJhY2tncm91bmQgLS0+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjUwMCIgaGVpZ2h0PSI1MDAiIHJ4PSIyMCIgZmlsbD0idXJsKCNkYXJrQmcpIi8+CiAgCiAgPCEtLSBHbG93IGVmZmVjdHMgLS0+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjUwMCIgaGVpZ2h0PSI1MDAiIHJ4PSIyMCIgZmlsbD0idXJsKCNnbG93UHVycGxlKSIvPgogIDxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIiByeD0iMjAiIGZpbGw9InVybCgjZ2xvd0N5YW4pIi8+CiAgCiAgPCEtLSBTbWFsbCBjeWFuIGdsb3cgYm90dG9tIHJpZ2h0IC0tPgogIDxjaXJjbGUgY3g9IjQyMCIgY3k9IjQyMCIgcj0iNjAiIGZpbGw9InVybCgjZ2xvd0N5YW5TbWFsbCkiLz4KICAKICA8IS0tIFN0YXJzIC0gVG9wIExlZnQgKHBpbmsvY29yYWwpIC0tPgogIDxwb2x5Z29uIHBvaW50cz0iNTAsNTAgNTMsNTkgNjIsNTkgNTUsNjUgNTcsNzQgNTAsNjkgNDMsNzQgNDUsNjUgMzgsNTkgNDcsNTkiIGZpbGw9IiNmNDcyYjYiLz4KICA8cG9seWdvbiBwb2ludHM9Ijc1LDg1IDc2LjUsODkgODEsODkgNzcuNSw5MiA3OSw5NiA3NSw5My41IDcxLDk2IDcyLjUsOTIgNjksODkgNzMuNSw4OSIgZmlsbD0iI2MwODRmYyIgb3BhY2l0eT0iMC44Ii8+CiAgPHBvbHlnb24gcG9pbnRzPSI1NSw5NSA1Niw5OCA1OSw5OCA1NywxMDAgNTgsMTAzIDU1LDEwMSA1MiwxMDMgNTMsMTAwIDUxLDk4IDU0LDk4IiBmaWxsPSIjZjQ3MmI2IiBvcGFjaXR5PSIwLjYiLz4KICAKICA8IS0tIFN0YXJzIC0gVG9wIFJpZ2h0IChjeWFuKSAtLT4KICA8cG9seWdvbiBwb2ludHM9IjQ1MCw1NSA0NTMsNjQgNDYyLDY0IDQ1NSw3MCA0NTcsNzkgNDUwLDc0IDQ0Myw3OSA0NDUsNzAgNDM4LDY0IDQ0Nyw2NCIgZmlsbD0iIzIyZDNkMSIvPgogIDxwb2x5Z29uIHBvaW50cz0iNDIwLDkwIDQyMS41LDk0IDQyNiw5NCA0MjIuNSw5NyA0MjQsMTAxIDQyMCw5OC41IDQxNiwxMDEgNDE3LjUsOTcgNDE0LDk0IDQxOC41LDk0IiBmaWxsPSIjMjJkM2QxIiBvcGFjaXR5PSIwLjYiLz4KICAKICA8IS0tIFN0YXJzIC0gQm90dG9tIExlZnQgKGN5YW4pIC0tPgogIDxwb2x5Z29uIHBvaW50cz0iNTUsNDIwIDU4LDQyOSA2Nyw0MjkgNjAsNDM1IDYyLDQ0NCA1NSw0MzkgNDgsNDQ0IDUwLDQzNSA0Myw0MjkgNTIsNDI5IiBmaWxsPSIjMjJkM2QxIi8+CiAgPHBvbHlnb24gcG9pbnRzPSI4NSwzOTAgODYuNSwzOTQgOTEsMzk0IDg3LjUsMzk3IDg5LDQwMSA4NSwzOTguNSA4MSw0MDEgODIuNSwzOTcgNzksMzk0IDgzLjUsMzk0IiBmaWxsPSIjMjJkM2QxIiBvcGFjaXR5PSIwLjYiLz4KICAKICA8IS0tIFN0YXJzIC0gQm90dG9tIFJpZ2h0IChwaW5rKSAtLT4KICA8cG9seWdvbiBwb2ludHM9IjQ0NSw0MzAgNDQ4LDQzOSA0NTcsNDM5IDQ1MCw0NDUgNDUyLDQ1NCA0NDUsNDQ5IDQzOCw0NTQgNDQwLDQ0NSA0MzMsNDM5IDQ0Miw0MzkiIGZpbGw9IiNmNDcyYjYiLz4KICA8cG9seWdvbiBwb2ludHM9IjQxNSw0MDAgNDE2LjUsNDA0IDQyMSw0MDQgNDE3LjUsNDA3IDQxOSw0MTEgNDE1LDQwOC41IDQxMSw0MTEgNDEyLjUsNDA3IDQwOSw0MDQgNDEzLjUsNDA0IiBmaWxsPSIjZjQ3MmI2IiBvcGFjaXR5PSIwLjYiLz4KICAKICA8IS0tIFNtYWxsIGRlY29yYXRpdmUgc3RhcnMgc2NhdHRlcmVkIC0tPgogIDxwb2x5Z29uIHBvaW50cz0iNDMwLDEzMCA0MzEsMTMzIDQzNCwxMzMgNDMyLDEzNSA0MzMsMTM4IDQzMCwxMzYuNSA0MjcsMTM4IDQyOCwxMzUgNDI2LDEzMyA0MjksMTMzIiBmaWxsPSIjMjJkM2QxIiBvcGFjaXR5PSIwLjUiLz4KICA8cG9seWdvbiBwb2ludHM9IjQ3MCwyMDAgNDcxLDIwMyA0NzQsMjAzIDQ3MiwyMDUgNDczLDIwOCA0NzAsMjA2LjUgNDY3LDIwOCA0NjgsMjA1IDQ2NiwyMDMgNDY5LDIwMyIgZmlsbD0iIzIyZDNkMSIgb3BhY2l0eT0iMC40Ii8+CiAgCiAgPCEtLSBNWmVlIHRleHQgLSBzbWFsbGVyIC0tPgogIDx0ZXh0IHg9IjI1MCIgeT0iMTMwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0ibXplZS10ZXh0IiBmb250LXNpemU9IjIyIiBsZXR0ZXItc3BhY2luZz0iMiI+TVplZTwvdGV4dD4KICAKICA8IS0tIEJVU0lORVNTIHRleHQgLSBzbWFsbGVyIC0tPgogIDx0ZXh0IHg9IjI1MCIgeT0iMjAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0ibWFpbi10ZXh0IiBmb250LXNpemU9IjU0IiBsZXR0ZXItc3BhY2luZz0iMiI+QlVTSU5FU1M8L3RleHQ+CiAgCiAgPCEtLSBUWUNPT04gdGV4dCAtIHNtYWxsZXIgLS0+CiAgPHRleHQgeD0iMjUwIiB5PSIyNzAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJtYWluLXRleHQiIGZvbnQtc2l6ZT0iNjAiIGxldHRlci1zcGFjaW5nPSIzIj5UWUNPT048L3RleHQ+CiAgCiAgPCEtLSBCdXksIFNlbGwgJiBSZW50IHRleHQgLSBzbWFsbGVyIC0tPgogIDx0ZXh0IHg9IjI1MCIgeT0iMzMwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBjbGFzcz0ic3ViLXRleHQiIGZvbnQtc2l6ZT0iMjgiIGxldHRlci1zcGFjaW5nPSIxIj5CdXksIFNlbGwgJmFtcDsgUmVudDwvdGV4dD4KICAKICA8IS0tIFJ1cGVlIHN5bWJvbCAtIHNtYWxsZXIgLS0+CiAgPHRleHQgeD0iMjUwIiB5PSI0MDAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGNsYXNzPSJydXBlZS10ZXh0IiBmb250LXNpemU9IjQwIj7igrk8L3RleHQ+Cjwvc3ZnPg==",
+      "description": "",
+      "badges": [
+        "hot",
+        "featured"
+      ],
+      "url": "https://business-tycoon.onrender.com/",
+      "id": 1
+    },
+    {
+      "title": "Tambola Queen",
+      "plays": 7,
+      "badges": [],
+      "thumbnail": "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=300&fit=crop",
+      "categoryId": 6,
+      "description": "s",
+      "featured": false,
+      "url": "https://tambolaqueen.onrender.com",
+      "id": 2
+    },
+    {
+      "thumbnail": "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=400&h=300&fit=crop",
+      "description": "",
+      "categoryId": 1,
+      "badges": [],
+      "featured": false,
+      "title": "memory game",
+      "plays": 8,
+      "id": 3,
+      "url": "https://strikermzee.github.io/aymplayzonekids"
+    }
+  ],
+  "helpData": {
+    "faqs": [
+      {
+        "a": "Click on any game card to start playing instantly!",
+        "q": "How do I play games?"
+      },
+      {
+        "q": "Do I need to register?",
+        "a": "No registration required! All games are free."
+      },
+      {
+        "q": "How can I contact support?",
+        "a": "Use the Contact page or email us."
+      }
+    ],
+    "content": "Welcome to MZeeGamingHub! We provide the best gaming experience.\n\nCheck our FAQ below or contact us for help.",
+    "title": "Help & Support"
+  },
+  "categories": [
+    {
+      "id": 1,
+      "description": "Fast-paced action games",
+      "name": "Action",
+      "color": "#ff4d4d",
+      "icon": "🎯"
+    },
+    {
+      "icon": "🗺️",
+      "color": "#00f0ff",
+      "name": "Adventure",
+      "description": "Explore new worlds",
+      "id": 2
+    },
+    {
+      "color": "#ff00e5",
+      "name": "Puzzle",
+      "description": "Brain teasers",
+      "icon": "🧩",
+      "id": 3
+    },
+    {
+      "color": "#39ff14",
+      "name": "Racing",
+      "id": 4,
+      "description": "High-speed racing",
+      "icon": "🏎️"
+    },
+    {
+      "color": "#ffae00",
+      "name": "Sports",
+      "icon": "⚽",
+      "description": "Sports games",
+      "id": 5
+    },
+    {
+      "id": 6,
+      "color": "#00ff88",
+      "icon": "🎮",
+      "name": "Simulation",
+      "description": "Life simulations"
+    }
+  ],
+  "lastUpdated": "2026-09-06T06:50:43.168Z"
+}

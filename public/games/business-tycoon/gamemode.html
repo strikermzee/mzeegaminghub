@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Business Tycoon — Game Mode</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:linear-gradient(135deg,#0a1628,#1a237e);font-family:Arial,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;color:#eee;padding:16px}
+.card{background:rgba(30,30,60,0.9);border:1px solid #333;border-radius:14px;padding:32px 28px;width:100%;max-width:500px;backdrop-filter:blur(10px)}
+h1{font-size:26px;font-weight:900;color:#e91e8c;font-style:italic;text-align:center;margin-bottom:6px}
+.sub{text-align:center;color:#888;font-size:13px;margin-bottom:24px}
+.welcome{text-align:center;color:#aaa;font-size:14px;margin-bottom:20px}
+.welcome span{color:#e91e8c;font-weight:700}
+.mode-grid{display:flex;flex-direction:column;gap:16px}
+.mode-btn{display:flex;align-items:center;gap:16px;padding:20px;background:#2a2a2a;border:2px solid #444;border-radius:12px;cursor:pointer;transition:all 0.2s;text-align:left}
+.mode-btn:hover{border-color:#e91e8c;transform:scale(1.02);background:#333}
+.mode-icon{font-size:48px;width:70px;text-align:center;flex-shrink:0}
+.mode-info h3{font-size:18px;font-weight:800;color:#fff;margin-bottom:4px}
+.mode-info p{font-size:13px;color:#888;line-height:1.4}
+.logout{padding:8px 16px;background:#2a2a2a;border:1px solid #444;border-radius:8px;color:#aaa;cursor:pointer;font-size:13px;margin-top:20px;display:block;width:100%;text-align:center;transition:all 0.2s}
+.logout:hover{border-color:#e91e8c;color:#fff}
+
+/* Robot Selection Section */
+.robot-section{display:none;margin-top:20px;padding-top:20px;border-top:1px solid #333}
+.robot-section.active{display:block}
+.robot-section h3{font-size:16px;font-weight:700;color:#e91e8c;margin-bottom:12px;text-align:center}
+.robot-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+.robot-opt{padding:14px 10px;background:#1a1a2e;border:2px solid #444;border-radius:10px;cursor:pointer;font-size:24px;font-weight:900;color:#aaa;transition:all 0.2s;text-align:center}
+.robot-opt:hover{border-color:#e91e8c;color:#fff}
+.robot-opt.sel{border-color:#ffd700;background:#2a2a4e;color:#ffd700;box-shadow:0 0 10px rgba(255,215,0,0.3)}
+.robot-opt span{display:block;font-size:10px;font-weight:400;margin-top:4px}
+.start-btn{width:100%;padding:14px;border-radius:10px;border:none;background:#e91e8c;color:#fff;font-size:16px;font-weight:800;cursor:pointer;transition:all 0.15s}
+.start-btn:hover{background:#c71677}
+.back-btn{width:100%;padding:10px;border-radius:8px;border:1px solid #555;background:#2a2a2a;color:#eee;font-size:14px;font-weight:700;cursor:pointer;margin-top:10px;transition:all 0.15s}
+.back-btn:hover{border-color:#e91e8c}
+
+/* Token Selection */
+.tok-section{margin-top:16px;padding-top:16px;border-top:1px solid #333}
+.tok-section label{display:block;font-size:12px;color:#aaa;margin-bottom:8px}
+.tok-grid{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.tok{width:50px;height:65px;border-radius:8px;border:3px solid #444;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3);background:#1a1a2e}
+.tok.sel{border-color:#ffd700;transform:scale(1.15);box-shadow:0 0 20px rgba(255,215,0,0.5)}
+.tok:hover{transform:scale(1.1)}
+
+/* Duration Selection */
+.dur-section{margin-top:16px}
+.dur-section label{display:block;font-size:12px;color:#aaa;margin-bottom:8px}
+.duration-grid{display:flex;gap:8px;flex-wrap:wrap}
+.dur-opt{padding:10px 16px;background:#1a1a2e;border:2px solid #444;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:#aaa;transition:all 0.2s;text-align:center;flex:1;min-width:70px}
+.dur-opt:hover{border-color:#e91e8c;color:#fff}
+.dur-opt.sel{border-color:#ffd700;background:#2a2a4e;color:#ffd700;box-shadow:0 0 10px rgba(255,215,0,0.3)}
+</style>
+</head>
+<body>
+<div class="card">
+  <div style="font-size:10px;color:#aaa;letter-spacing:2px;margin-bottom:2px;text-align:center">MZee</div>
+  <h1>💼 Business Tycoon</h1>
+  <p class="sub">Choose your game mode</p>
+  <div class="welcome">Welcome, <span id="greet">Player</span>!</div>
+  
+  <!-- Main Mode Selection -->
+  <div id="modeSelection" class="mode-grid">
+    <div class="mode-btn" onclick="selectMode('robot')">
+      <div class="mode-icon">🤖</div>
+      <div class="mode-info">
+        <h3>Play with Robot</h3>
+        <p>Play against AI opponents. Practice your strategy solo!</p>
+      </div>
+    </div>
+    <div class="mode-btn" onclick="selectMode('friends')">
+      <div class="mode-icon">👥</div>
+      <div class="mode-info">
+        <h3>Play with Friends</h3>
+        <p>Create or join a room to play with real players online.</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Robot Selection Section -->
+  <div id="robotSection" class="robot-section">
+    <h3>🤖 Select Number of Robot Players</h3>
+    <div class="robot-grid" id="robotGrid">
+      <div class="robot-opt sel" data-count="1" onclick="selectRobotCount(1, this)">1<span>Robot</span></div>
+      <div class="robot-opt" data-count="2" onclick="selectRobotCount(2, this)">2<span>Robots</span></div>
+      <div class="robot-opt" data-count="3" onclick="selectRobotCount(3, this)">3<span>Robots</span></div>
+      <div class="robot-opt" data-count="4" onclick="selectRobotCount(4, this)">4<span>Robots</span></div>
+      <div class="robot-opt" data-count="5" onclick="selectRobotCount(5, this)">5<span>Robots</span></div>
+    </div>
+    
+    <div class="tok-section">
+      <label>Choose Your Pawn</label>
+      <div class="tok-grid" id="tokGrid"></div>
+    </div>
+    
+    <div class="dur-section">
+      <label>⏱️ Game Duration</label>
+      <div class="duration-grid" id="durationSelect">
+        <div class="dur-opt sel" data-hours="1" onclick="selectDuration(1, this)">1 Hour</div>
+        <div class="dur-opt" data-hours="2" onclick="selectDuration(2, this)">2 Hours</div>
+        <div class="dur-opt" data-hours="3" onclick="selectDuration(3, this)">3 Hours</div>
+        <div class="dur-opt" data-hours="4" onclick="selectDuration(4, this)">4 Hours</div>
+      </div>
+    </div>
+    
+    <button class="start-btn" onclick="startRobotGame()">🚀 Start Game</button>
+    <button class="back-btn" onclick="showModeSelection()">← Back</button>
+  </div>
+  
+  <button class="logout" onclick="logout()">Log out</button>
+  <button class="back-btn" onclick="backToHub()" style="margin-top:10px">← Back to MZeeGamingHub</button>
+</div>
+
+<script>
+// Check auth
+const token = sessionStorage.getItem('token');
+const username = sessionStorage.getItem('username');
+if (!token) { window.location.href = './'; }
+document.getElementById('greet').textContent = username;
+
+// Colored pawns
+const COINS = [
+  { color: '#ffffff', name: 'White' },
+  { color: '#2196f3', name: 'Blue' },
+  { color: '#4caf50', name: 'Green' },
+  { color: '#ff9800', name: 'Orange' },
+  { color: '#9c27b0', name: 'Purple' },
+  { color: '#f44336', name: 'Red' }
+];
+
+let selectedRobotCount = 1;
+let selectedCoinIndex = 0;
+let selectedDuration = 1;
+
+// Create pawn SVG
+function createPawnSvg(color, size = 40) {
+  const strokeColor = color === '#ffffff' ? '#333' : '#fff';
+  return `<svg viewBox="0 0 30 50" width="${size}" height="${size * 1.4}" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5))">
+    <defs>
+      <linearGradient id="pawnG_${color.replace('#','')}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:${color};stop-opacity:1"/>
+        <stop offset="50%" style="stop-color:${color};stop-opacity:0.9"/>
+        <stop offset="100%" style="stop-color:${color};stop-opacity:0.7"/>
+      </linearGradient>
+    </defs>
+    <ellipse cx="15" cy="8" rx="7" ry="7" fill="url(#pawnG_${color.replace('#','')})" stroke="${strokeColor}" stroke-width="1.5"/>
+    <path d="M8 15 Q5 25 4 45 L26 45 Q25 25 22 15 Z" fill="url(#pawnG_${color.replace('#','')})" stroke="${strokeColor}" stroke-width="1.5"/>
+  </svg>`;
+}
+
+// Build token picker
+function buildTokenPicker() {
+  const tg = document.getElementById('tokGrid');
+  COINS.forEach((coin, i) => {
+    const el = document.createElement('div');
+    el.className = 'tok' + (i === 0 ? ' sel' : '');
+    el.innerHTML = createPawnSvg(coin.color, 36);
+    el.title = coin.name + ' Pawn';
+    el.onclick = () => {
+      selectedCoinIndex = i;
+      tg.querySelectorAll('.tok').forEach(x => x.classList.remove('sel'));
+      el.classList.add('sel');
+    };
+    tg.appendChild(el);
+  });
+}
+buildTokenPicker();
+
+function selectMode(mode) {
+  if (mode === 'friends') {
+    window.location.href = './lobby.html';
+  } else {
+    document.getElementById('modeSelection').style.display = 'none';
+    document.getElementById('robotSection').classList.add('active');
+  }
+}
+
+function showModeSelection() {
+  document.getElementById('modeSelection').style.display = 'flex';
+  document.getElementById('robotSection').classList.remove('active');
+}
+
+function selectRobotCount(count, el) {
+  selectedRobotCount = count;
+  document.querySelectorAll('.robot-opt').forEach(opt => opt.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function selectDuration(hours, el) {
+  selectedDuration = hours;
+  document.querySelectorAll('.dur-opt').forEach(opt => opt.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function startRobotGame() {
+  const coin = COINS[selectedCoinIndex];
+  sessionStorage.setItem('tok', 'pawn');
+  sessionStorage.setItem('color', coin.color);
+  sessionStorage.setItem('action', 'robot');
+  sessionStorage.setItem('robotCount', selectedRobotCount);
+  sessionStorage.setItem('gameDuration', selectedDuration);
+  window.location.href = './game.html';
+}
+
+function logout() {
+  // One session for the whole site — sign out of the hub, not just this game.
+  sessionStorage.clear();
+  fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
+    .catch(() => {})
+    .then(() => { window.location.href = '/login.html'; });
+}
+
+function backToHub() {
+  // Leave the game but stay signed in.
+  sessionStorage.clear();
+  window.location.href = '/';
+}
+</script>
+</body>
+</html>

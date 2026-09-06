@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Business Tycoon — Lobby</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:linear-gradient(135deg,#0a1628,#1a237e);font-family:Arial,sans-serif;min-height:100vh;color:#eee;padding:16px}
+header{display:flex;justify-content:space-between;align-items:center;max-width:900px;margin:0 auto 24px}
+h1{font-size:22px;font-weight:900;color:#e91e8c;font-style:italic}
+.logout{padding:6px 14px;background:#2a2a2a;border:1px solid #444;border-radius:8px;color:#aaa;cursor:pointer;font-size:13px}
+.logout:hover{border-color:#e91e8c;color:#fff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:900px;margin:0 auto}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+.card{background:rgba(30,30,60,0.9);border:1px solid #333;border-radius:14px;padding:22px;backdrop-filter:blur(10px)}
+.card h2{font-size:16px;font-weight:800;color:#e91e8c;margin-bottom:16px}
+label{display:block;font-size:11px;color:#aaa;margin-bottom:4px;margin-top:12px}
+input{width:100%;padding:9px 12px;background:#111;border:1px solid #555;border-radius:8px;color:#fff;font-size:14px}
+input:focus{outline:none;border-color:#e91e8c}
+.btn{width:100%;padding:10px;border-radius:9px;border:none;background:#e91e8c;color:#fff;font-size:14px;font-weight:800;cursor:pointer;margin-top:14px;transition:.15s}
+.btn:hover{background:#c71677}
+.btn.sec{background:#2a2a2a;border:1px solid #555;color:#eee}
+.btn.sec:hover{border-color:#e91e8c}
+.err{color:#ff6b6b;font-size:12px;margin-top:8px;min-height:18px}
+.tok-grid{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.tok{width:50px;height:65px;border-radius:8px;border:3px solid #444;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3);background:#1a1a2e}
+.tok.sel{border-color:#ffd700;transform:scale(1.15);box-shadow:0 0 20px rgba(255,215,0,0.5)}
+.tok.taken{opacity:0.3;cursor:not-allowed;border-color:#666}
+.tok:hover:not(.taken){transform:scale(1.1)}
+/* Leaderboard */
+.lb-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #2a2a2a;font-size:13px}
+.lb-row:last-child{border-bottom:none}
+.lb-num{width:22px;color:#666;text-align:right;flex-shrink:0}
+.lb-name{flex:1;font-weight:700}
+.lb-wins{color:#e91e8c;font-weight:800;width:40px;text-align:center}
+.lb-games{color:#888;width:40px;text-align:center}
+.lb-best{color:#fdd835;width:70px;text-align:right}
+.lb-head{font-size:10px;color:#666;display:flex;gap:8px;padding-bottom:6px;border-bottom:1px solid #333;margin-bottom:4px}
+.lb-head span:first-child{flex:1}
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
+.badge-gold{background:#f9a825;color:#111}
+.badge-silver{background:#90a4ae;color:#111}
+.badge-bronze{background:#a1887f;color:#111}
+.fullscreen-btn{position:fixed;top:16px;right:16px;padding:8px 12px;background:rgba(0,0,0,0.5);border:1px solid #555;border-radius:8px;color:#fff;cursor:pointer;font-size:18px;z-index:100}
+.fullscreen-btn:hover{background:rgba(233,30,140,0.5);border-color:#e91e8c}
+.invite-section{margin-top:16px;padding-top:16px;border-top:1px solid #333}
+.invite-input{display:flex;gap:8px;margin-top:8px}
+.invite-input input{flex:1}
+.invite-input button{width:auto;padding:10px 16px;margin-top:0}
+.duration-grid{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.dur-opt{padding:10px 16px;background:#1a1a2e;border:2px solid #444;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:#aaa;transition:all 0.2s;text-align:center;flex:1;min-width:70px}
+.dur-opt:hover{border-color:#e91e8c;color:#fff}
+.dur-opt.sel{border-color:#ffd700;background:#2a2a4e;color:#ffd700;box-shadow:0 0 10px rgba(255,215,0,0.3)}
+</style>
+</head>
+<body>
+
+<button class="fullscreen-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen">⛶</button>
+
+<header>
+  <div>
+    <div style="font-size:10px;color:#aaa;letter-spacing:2px;margin-bottom:2px">MZee</div>
+    <h1>💼 Business Tycoon</h1>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <button class="logout" onclick="window.location.href = './gamemode.html'">← Back</button>
+    <span id="greet" style="font-size:13px;color:#aaa"></span>
+    <button class="logout" onclick="logout()">Log out</button>
+  </div>
+</header>
+
+<div class="grid">
+
+  <!-- CREATE ROOM -->
+  <div class="card">
+    <h2>🎲 Create Room</h2>
+    <p style="font-size:12px;color:#888;margin-bottom:8px">A private room with an invite code — share it with friends!</p>
+    <label>Choose Your Pawn</label>
+    <div class="tok-grid" id="cToks"></div>
+    <label style="margin-top:16px">⏱️ Game Duration</label>
+    <div class="duration-grid" id="durationSelect">
+      <div class="dur-opt sel" data-hours="1" onclick="selectDuration(1, this)">1 Hour</div>
+      <div class="dur-opt" data-hours="2" onclick="selectDuration(2, this)">2 Hours</div>
+      <div class="dur-opt" data-hours="3" onclick="selectDuration(3, this)">3 Hours</div>
+      <div class="dur-opt" data-hours="4" onclick="selectDuration(4, this)">4 Hours</div>
+    </div>
+    <div id="c-err" class="err"></div>
+    <button class="btn" onclick="createRoom()">Create Room</button>
+    
+    <div class="invite-section">
+      <label>📧 Invite by Email (optional)</label>
+      <div class="invite-input">
+        <input id="invite-email" type="email" placeholder="friend@email.com"/>
+        <button class="btn sec" onclick="sendInvite()">Send</button>
+      </div>
+      <div id="invite-msg" style="font-size:11px;color:#4caf50;margin-top:6px"></div>
+    </div>
+  </div>
+
+  <!-- JOIN ROOM -->
+  <div class="card">
+    <h2>🔑 Join Room</h2>
+    <p style="font-size:12px;color:#888;margin-bottom:8px">Enter the 7-digit invite code from your friend.</p>
+    <label>Invite Code</label>
+    <input id="j-code" type="text" placeholder="1234567" maxlength="7" style="font-size:24px;letter-spacing:8px;text-align:center" oninput="onCodeInput(this)"/>
+    <label>Choose Your Pawn <span id="j-taken-info" style="font-size:10px;color:#888"></span></label>
+    <div class="tok-grid" id="jToks"></div>
+    <div id="j-err" class="err"></div>
+    <button class="btn" onclick="joinRoom()">Join Room</button>
+  </div>
+
+  <!-- LEADERBOARD (full width) -->
+  <div class="card" style="grid-column:1/-1">
+    <h2>🏆 Leaderboard</h2>
+    <div class="lb-head">
+      <span>Player</span>
+      <span style="width:40px;text-align:center">Wins</span>
+      <span style="width:40px;text-align:center">Games</span>
+      <span style="width:70px;text-align:right">Best Rs.</span>
+    </div>
+    <div id="lb-body">
+      <div style="color:#666;font-size:13px;padding:12px 0;text-align:center">Loading leaderboard…</div>
+    </div>
+  </div>
+
+</div>
+
+<script src="/games/business-tycoon/socket.io/socket.io.js"></script>
+<script>
+// Colored pawns - each pawn has a unique color
+const COINS = [
+  { color: '#ffffff', name: 'White' },
+  { color: '#2196f3', name: 'Blue' },
+  { color: '#4caf50', name: 'Green' },
+  { color: '#ff9800', name: 'Orange' },
+  { color: '#9c27b0', name: 'Purple' },
+  { color: '#f44336', name: 'Red' }
+];
+
+let selCoin = { c: 0, j: 1 }; // Index of selected pawn
+let takenColorsForJoin = []; // Colors already taken in the room being joined
+let selectedDuration = 1; // Default 1 hour
+
+function selectDuration(hours, el) {
+  selectedDuration = hours;
+  document.querySelectorAll('.dur-opt').forEach(opt => opt.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// Socket for checking taken colors
+const token = sessionStorage.getItem('token');
+let checkSocket = null;
+if (token) {
+  checkSocket = io({ path: '/games/business-tycoon/socket.io', auth: { token } });
+}
+
+// Create pawn SVG
+function createPawnSvg(color, size = 40) {
+  const strokeColor = color === '#ffffff' ? '#333' : '#fff';
+  return `<svg viewBox="0 0 30 50" width="${size}" height="${size * 1.4}" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5))">
+    <defs>
+      <linearGradient id="pawnG_${color.replace('#','')}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:${color};stop-opacity:1"/>
+        <stop offset="50%" style="stop-color:${color};stop-opacity:0.9"/>
+        <stop offset="100%" style="stop-color:${color};stop-opacity:0.7"/>
+      </linearGradient>
+    </defs>
+    <ellipse cx="15" cy="8" rx="7" ry="7" fill="url(#pawnG_${color.replace('#','')})" stroke="${strokeColor}" stroke-width="1.5"/>
+    <path d="M8 15 Q5 25 4 45 L26 45 Q25 25 22 15 Z" fill="url(#pawnG_${color.replace('#','')})" stroke="${strokeColor}" stroke-width="1.5"/>
+  </svg>`;
+}
+
+function buildPickers(prefix) {
+  const tg = document.getElementById(prefix+'Toks');
+  COINS.forEach((coin, i) => {
+    const el = document.createElement('div');
+    el.className = 'tok' + (selCoin[prefix] === i ? ' sel' : '');
+    el.innerHTML = createPawnSvg(coin.color, 36);
+    el.title = coin.name + ' Pawn';
+    el.dataset.index = i;
+    el.dataset.color = coin.color;
+    el.onclick = () => selectCoin(prefix, i, el, tg);
+    tg.appendChild(el);
+  });
+}
+
+function selectCoin(prefix, index, el, container) {
+  if (el.classList.contains('taken')) {
+    document.getElementById(prefix === 'j' ? 'j-err' : 'c-err').textContent = 'Pawn already taken! Choose another color.';
+    return;
+  }
+  document.getElementById(prefix === 'j' ? 'j-err' : 'c-err').textContent = '';
+  selCoin[prefix] = index;
+  container.querySelectorAll('.tok').forEach(x => x.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function updateJoinPickers(takenColors) {
+  takenColorsForJoin = takenColors;
+  const tg = document.getElementById('jToks');
+  tg.querySelectorAll('.tok').forEach(el => {
+    const color = el.dataset.color;
+    if (takenColors.includes(color)) {
+      el.classList.add('taken');
+      el.classList.remove('sel');
+    } else {
+      el.classList.remove('taken');
+    }
+  });
+  // If current selection is taken, select first available
+  const currentColor = COINS[selCoin.j].color;
+  if (takenColors.includes(currentColor)) {
+    const firstAvail = COINS.findIndex(c => !takenColors.includes(c.color));
+    if (firstAvail >= 0) {
+      selCoin.j = firstAvail;
+      tg.querySelectorAll('.tok').forEach((el, i) => {
+        el.classList.toggle('sel', i === firstAvail);
+      });
+    }
+  }
+  // Show info
+  const info = document.getElementById('j-taken-info');
+  if (takenColors.length > 0) {
+    info.textContent = `(${takenColors.length} pawn${takenColors.length > 1 ? 's' : ''} taken)`;
+  } else {
+    info.textContent = '';
+  }
+}
+
+function onCodeInput(input) {
+  input.value = input.value.replace(/[^0-9]/g, '');
+  const code = input.value;
+  const err = document.getElementById('j-err');
+  
+  if (code.length === 7 && checkSocket) {
+    err.textContent = 'Checking room...';
+    checkSocket.emit('checkTakenColors', { code }, (response) => {
+      if (response.error) {
+        err.textContent = response.error;
+        updateJoinPickers([]);
+      } else {
+        err.textContent = '';
+        updateJoinPickers(response.takenColors || []);
+      }
+    });
+  } else {
+    updateJoinPickers([]);
+  }
+}
+
+buildPickers('c'); 
+buildPickers('j');
+
+const username = sessionStorage.getItem('username');
+if (!token) { window.location.href = './'; }
+document.getElementById('greet').textContent = `Hello, ${username}!`;
+
+async function createRoom() {
+  const err = document.getElementById('c-err');
+  err.textContent = '';
+  const coin = COINS[selCoin.c];
+  sessionStorage.setItem('tok', 'pawn');
+  sessionStorage.setItem('color', coin.color);
+  sessionStorage.setItem('action','create');
+  sessionStorage.setItem('gameDuration', selectedDuration);
+  window.location.href = './game.html';
+}
+
+async function joinRoom() {
+  const code = document.getElementById('j-code').value.trim();
+  const err  = document.getElementById('j-err');
+  err.textContent = '';
+  if (code.length !== 7) { err.textContent = 'Code must be 7 digits.'; return; }
+  if (!/^\d{7}$/.test(code)) { err.textContent = 'Code must contain only numbers.'; return; }
+  const coin = COINS[selCoin.j];
+  
+  // Check if selected color is taken
+  if (takenColorsForJoin.includes(coin.color)) {
+    err.textContent = 'Pawn already taken! Please choose a different color.';
+    return;
+  }
+  
+  sessionStorage.setItem('tok', 'pawn');
+  sessionStorage.setItem('color', coin.color);
+  sessionStorage.setItem('action', 'join');
+  sessionStorage.setItem('code', code);
+  window.location.href = './game.html';
+}
+
+function sendInvite() {
+  const email = document.getElementById('invite-email').value.trim();
+  const msg = document.getElementById('invite-msg');
+  if (!email || !email.includes('@')) {
+    msg.style.color = '#ff6b6b';
+    msg.textContent = 'Please enter a valid email address.';
+    return;
+  }
+  // In a real app, this would send an email via backend
+  msg.style.color = '#4caf50';
+  msg.textContent = '✓ Invite will be sent when room is created!';
+  sessionStorage.setItem('inviteEmail', email);
+}
+
+function logout() {
+  // One session for the whole site — sign out of the hub, not just this game.
+  sessionStorage.clear();
+  fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
+    .catch(() => {})
+    .then(() => { window.location.href = '/login.html'; });
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => {
+      console.log('Fullscreen error:', err);
+    });
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+// Load leaderboard
+async function loadLB() {
+  try {
+    const r = await fetch('./api/leaderboard');
+    const rows = await r.json();
+    const body = document.getElementById('lb-body');
+    if (!rows.length) { body.innerHTML = '<div style="color:#666;font-size:13px;padding:12px 0;text-align:center">No games played yet. Be the first!</div>'; return; }
+    body.innerHTML = rows.map((row,i) => {
+      const badge = i===0?'<span class="badge badge-gold">🥇</span>':i===1?'<span class="badge badge-silver">🥈</span>':i===2?'<span class="badge badge-bronze">🥉</span>':'<span class="lb-num">'+(i+1)+'</span>';
+      return `<div class="lb-row">${badge}<span class="lb-name">${row.username}</span><span class="lb-wins">${row.wins||0}</span><span class="lb-games">${row.games||0}</span><span class="lb-best">Rs.${(row.best||0).toLocaleString()}</span></div>`;
+    }).join('');
+  } catch {}
+}
+loadLB();
+</script>
+</body>
+</html>

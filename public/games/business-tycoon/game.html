@@ -1,0 +1,3147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>Business Tycoon — Online</title>
+<script src="/games/business-tycoon/socket.io/socket.io.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:linear-gradient(135deg,#0a1628,#1a237e);font-family:'Segoe UI',Arial,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:10px;color:#eee;overflow-x:hidden;}
+
+.screen{display:none;width:100%;max-width:900px;}.screen.active{display:block;}
+#s-lobby.active{display:flex;flex-direction:column;align-items:center;gap:10px;max-width:460px;}
+#s-game.active{display:flex;flex-direction:row;align-items:flex-start;gap:8px;max-width:1200px;width:100%;}
+
+/* Mobile responsive layout */
+@media (max-width: 1100px) {
+  #s-game.active{flex-direction:column;align-items:center;}
+  #leftPanel,#rightPanel{width:100%!important;max-width:700px;min-width:unset!important;position:relative!important;top:unset!important;}
+  #leftPanel{order:2;}
+  #centerPanel{order:1;width:100%;}
+  #rightPanel{order:3;}
+  #bGrid{transform:scale(0.85);transform-origin:top center;}
+}
+@media (max-width: 768px) {
+  body{padding:5px;}
+  #bGrid{transform:scale(0.55);transform-origin:top center;margin-bottom:-180px;}
+  .ib{padding:6px!important;}
+  .ps{padding:5px 6px!important;}
+  h1{font-size:18px!important;}
+  .btn{padding:8px 10px!important;font-size:13px!important;}
+}
+@media (max-width: 500px) {
+  #bGrid{transform:scale(0.42);margin-bottom:-260px;}
+}
+
+/* Turn timer */
+.turn-timer{display:flex;align-items:center;gap:8px;margin:8px 0;padding:8px 12px;background:#2a2a2a;border-radius:8px;border:1px solid #444;}
+.timer-bar{flex:1;height:8px;background:#333;border-radius:4px;overflow:hidden;}
+.timer-fill{height:100%;background:linear-gradient(90deg,#27ae60,#f1c40f,#e74c3c);transition:width 1s linear;border-radius:4px;}
+.timer-text{font-size:14px;font-weight:700;min-width:40px;text-align:right;color:#e91e8c;}
+.timer-fill.urgent{animation:timerPulse 0.5s infinite;}
+@keyframes timerPulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+/* Sound toggle */
+.sound-toggle{position:fixed;top:10px;right:10px;z-index:100;background:#2a2a2a;border:1px solid #444;border-radius:8px;padding:8px 12px;cursor:pointer;font-size:16px;transition:all 0.2s;}
+.sound-toggle:hover{background:#333;transform:scale(1.05);}
+.sound-toggle.muted{opacity:0.5;}
+
+/* Fullscreen toggle */
+.fullscreen-toggle{position:fixed;top:10px;right:60px;z-index:100;background:#2a2a2a;border:1px solid #555;border-radius:8px;padding:8px 12px;cursor:pointer;font-size:16px;transition:all 0.2s;color:#fff;}
+.fullscreen-toggle:hover{background:#333;transform:scale(1.05);border-color:#e91e8c;}
+
+/* Token animation */
+.token-moving{transition:none!important;}
+@keyframes tokenHop{0%{transform:scale(1) translateY(0)}50%{transform:scale(1.3) translateY(-8px)}100%{transform:scale(1) translateY(0)}}
+.token-hop{animation:tokenHop 0.3s ease;}
+
+/* Enhanced dice animation */
+@keyframes diceRoll{0%{transform:rotateX(0) rotateY(0)}25%{transform:rotateX(90deg) rotateY(90deg)}50%{transform:rotateX(180deg) rotateY(180deg)}75%{transform:rotateX(270deg) rotateY(270deg)}100%{transform:rotateX(360deg) rotateY(360deg)}}
+.die.rolling{animation:diceRoll 0.6s ease-out;}
+
+h1{font-size:24px;font-weight:900;text-align:center;color:#e91e8c;font-style:italic;margin-bottom:4px;}
+.invite-box{background:#2a2a2a;border:1px solid #444;border-radius:10px;padding:14px;text-align:center;width:100%}
+.invite-code{font-size:36px;font-weight:900;letter-spacing:10px;color:#e91e8c;margin:8px 0}
+.copy-btn{padding:5px 14px;background:#333;border:1px solid #555;border-radius:7px;color:#eee;cursor:pointer;font-size:12px}
+.copy-btn:hover{background:#444}
+.player-list{width:100%;background:#2a2a2a;border:1px solid #333;border-radius:10px;padding:12px}
+.player-list h3{font-size:13px;color:#aaa;margin-bottom:8px}
+.pl-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #333;font-size:13px}
+.pl-item:last-child{border:none}
+.pl-tok{font-size:20px}
+.pl-dot{width:10px;height:10px;border-radius:50%;background:#27ae60}
+.pl-dot.off{background:#555}
+.start-btn{padding:12px;border-radius:8px;border:1px solid #e91e8c;background:#e91e8c;cursor:pointer;font-size:15px;font-weight:700;color:#fff;width:100%}
+.start-btn:hover{background:#c71677}
+
+#leftPanel{width:200px;min-width:190px;flex-shrink:0;display:flex;flex-direction:column;gap:6px;position:sticky;top:10px;}
+#centerPanel{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+#rightPanel{width:220px;min-width:200px;flex-shrink:0;display:flex;flex-direction:column;gap:6px;position:sticky;top:10px;}
+
+.pb{display:flex;flex-direction:column;gap:5px;}
+.ps{background:#2a2a2a;border:1px solid #444;border-radius:7px;padding:6px 8px;font-size:14px;width:100%;}
+.ps.cur{border:2px solid #e91e8c;animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 5px #e91e8c}50%{box-shadow:0 0 15px #e91e8c}}
+.ps.me{border-left:3px solid #ffd700;}
+.ps .pn{font-weight:700;font-size:16px;color:#e91e8c;}
+.ps .pm{color:#aaa;}
+.ps.bk{opacity:0.4;}
+
+.ib{background:#2a2a2a;border:1px solid #444;border-radius:9px;padding:8px;}
+.ib h3{font-size:16px;font-weight:700;margin-bottom:5px;color:#e91e8c;}
+.dr{display:flex;flex-direction:column;gap:6px;align-items:stretch;}
+.die{width:44px;height:44px;border-radius:7px;background:#111;border:2px solid #555;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#FFD700;transition:transform 0.1s, box-shadow 0.1s;}
+.die.r{animation:sp 0.4s ease;}
+.die.rolling{animation:diceRoll 0.6s ease-out;box-shadow:0 0 15px #FFD700;}
+.diceRow{display:flex;gap:8px;align-items:center;justify-content:center;margin:5px 0;}
+@keyframes sp{0%,100%{transform:rotate(0)}30%{transform:rotate(-20deg)}70%{transform:rotate(20deg)}}
+
+.btn{padding:6px 12px;border-radius:7px;border:1px solid #444;background:#2a2a2a;cursor:pointer;font-size:14px;font-weight:700;color:#eee;margin:2px;transition:background 0.1s;width:100%;}
+.btn:hover{background:#333;}
+.btn.p{background:#e91e8c;color:#fff;border-color:#e91e8c;}
+.btn.w{background:#c0392b;color:white;border-color:#c0392b;}
+.btn.g{background:#27ae60;color:white;border-color:#27ae60;}
+.btn.o{background:#e65100;color:white;border-color:#e65100;}
+.btn:disabled{opacity:0.3;cursor:default;}
+.btnRow{display:flex;gap:4px;}.btnRow .btn{width:auto;flex:1;}
+
+#boardOuter{display:flex;justify-content:center;align-items:center;width:100%;margin:0;}
+#bGrid{
+  display:grid;
+  grid-template-columns:110px repeat(8,72px) 110px;
+  grid-template-rows:110px repeat(8,72px) 110px;
+  border:3px solid #333;
+  background:#f5edd8;
+  width:fit-content;
+}
+
+.corner{width:110px;height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-weight:800;padding:5px;border:1.5px solid #bbb;position:relative;}
+.c-start {background:#fce4ec;border-color:#e91e8c;}
+.c-prison{background:#ffcdd2;border-color:#b71c1c;}
+.c-club  {background:#e8f5e9;border-color:#2e7d32;}
+.c-rhouse{background:#fff9c4;border-color:#f9a825;}
+
+.serial{position:absolute;top:2px;left:2px;background:#000;color:#fff;font-size:12px;font-weight:900;padding:2px 5px;border-radius:3px;z-index:10;}
+
+.vcell{width:72px;border:1px solid #bbb;background:#fff;display:flex;flex-direction:column;align-items:stretch;cursor:pointer;transition:transform 0.1s;overflow:hidden;position:relative;}
+.vcell:hover{transform:scaleY(1.04);z-index:5;}
+.vcell.flip{flex-direction:column-reverse;}
+
+.hcell{height:72px;border:1px solid #bbb;background:#fff;display:flex;flex-direction:row;align-items:stretch;cursor:pointer;transition:transform 0.1s;overflow:hidden;position:relative;}
+.hcell:hover{transform:scaleX(1.04);z-index:5;}
+.hcell.flip{flex-direction:row-reverse;}
+
+.cbar-top{height:18px;width:100%;flex-shrink:0;}
+.cbar-side{width:18px;height:100%;flex-shrink:0;}
+
+.cbody{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px;gap:2px;overflow:hidden;}
+.cname{font-size:11px;font-weight:700;text-align:center;line-height:1.2;color:#111;}
+.cprice{font-size:12px;font-weight:700;color:#c0392b;text-align:center;}
+.cinfo{font-size:11px;text-align:center;color:#333;}
+.ctoks{display:flex;gap:1px;flex-wrap:wrap;justify-content:center;align-items:center;min-height:20px;max-height:24px;padding:1px;overflow:hidden;}
+.ctoks span{filter:drop-shadow(1px 1px 1px rgba(0,0,0,0.5));animation:bounce 0.5s ease;}
+@keyframes bounce{0%{transform:scale(0)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
+
+.sp-chance {background:#fff8e1!important;}
+.sp-comm   {background:#e8f5e9!important;}
+.sp-tax    {background:#ffebee!important;}
+.sp-util   {background:#e8eaf6!important;}
+.mortgaged {opacity:0.45;filter:grayscale(0.7);}
+
+.g-brown {background:#795548;}
+.g-lblue {background:#29b6f6;}
+.g-pink  {background:#f06292;}
+.g-orange{background:#ff7043;}
+.g-red   {background:#ef5350;}
+.g-yellow{background:#fdd835;}
+.g-green {background:#66bb6a;}
+.g-dblue {background:#1565c0;}
+
+#bCenter{grid-row:2/10;grid-column:2/10;background:#1a1a1a;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr 1fr;gap:8px;padding:10px;}
+#bCenter .center-title{grid-column:1/3;text-align:center;padding:6px 0;}
+.card-quadrant{border-radius:8px;padding:10px;overflow:hidden;display:flex;flex-direction:column;}
+.card-quadrant h4{font-size:14px;font-weight:800;margin-bottom:6px;text-align:center;letter-spacing:0.5px;}
+.card-quadrant ul{list-style:none;padding:0;margin:0;font-size:12px;line-height:1.5;}
+.card-quadrant li{padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.1);}
+.card-quadrant li:last-child{border:none;}
+.chance-quad{background:linear-gradient(135deg,#fff8e1 0%,#ffe0b2 100%);border:2px solid #ff6f00;}
+.chance-quad h4{color:#e65100;}
+.chance-quad li{color:#5d4037;}
+.comm-quad{background:linear-gradient(135deg,#e8f5e9 0%,#c8e6c9 100%);border:2px solid #2e7d32;}
+.comm-quad h4{color:#1b5e20;}
+.comm-quad li{color:#2e7d32;}
+
+.log{background:#1a1a1a;border:1px solid #333;border-radius:7px;padding:5px 7px;max-height:100px;overflow-y:auto;font-size:14px;color:#aaa;}
+.log div{padding:2px 0;border-bottom:1px solid #222;}
+.chat-wrap{background:#1a1a1a;border:1px solid #333;border-radius:7px;display:flex;flex-direction:column;max-height:140px;}
+.chat-msgs{flex:1;overflow-y:auto;padding:5px 7px;font-size:14px}
+.chat-msgs div{padding:2px 0;border-bottom:1px solid #222}
+.chat-msgs .cm{color:#4dd0e1}
+.chat-input{display:flex;gap:4px;padding:5px}
+.chat-input input{flex:1;background:#111;border:1px solid #444;border-radius:5px;color:#fff;font-size:14px;padding:5px 7px}
+.chat-input button{padding:5px 10px;background:#e91e8c;border:none;border-radius:5px;color:#fff;cursor:pointer;font-size:14px;font-weight:700}
+
+.mb{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:500;align-items:center;justify-content:center;}
+.mb.open{display:flex;}
+.mo{background:#1e1e1e;border-radius:12px;border:2px solid #e91e8c;padding:18px;width:94%;max-width:400px;max-height:88vh;overflow-y:auto;color:#eee;}
+.mo h2{font-size:20px;color:#e91e8c;margin-bottom:10px;font-weight:800}
+.mo h3{font-size:18px;font-weight:800;margin-bottom:7px;color:#e91e8c;}
+.mo p{font-size:14px;margin:2px 0;color:#aaa;}
+.mo label{font-size:14px;color:#aaa;display:block;margin-bottom:3px;margin-top:10px}
+.mo input,.mo select{width:100%;padding:8px 12px;background:#111;border:1px solid #555;border-radius:7px;color:#fff;font-size:16px}
+.mbtns{display:flex;gap:5px;margin-top:11px;justify-content:flex-end;flex-wrap:wrap;}
+.mbtns .btn{width:auto;}
+.tabs{display:flex;border-bottom:2px solid #e91e8c;margin-bottom:7px;}
+.tab{padding:6px 12px;font-size:14px;cursor:pointer;border-bottom:3px solid transparent;color:#666;font-weight:700;}
+.tab.a{border-bottom-color:#e91e8c;color:#e91e8c;}
+.tp{display:none;}.tp.a{display:block;}
+.pr{display:flex;justify-content:space-between;align-items:center;padding:5px 6px;border-radius:5px;border:1px solid #444;font-size:14px;margin-bottom:4px;background:#2a2a2a}
+.card-chance{background:linear-gradient(135deg,#fff8e1,#ffe0b2);border:2px solid #ff6f00;border-radius:8px;padding:12px;margin:6px 0;color:#333}
+.card-comm{background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border:2px solid #2e7d32;border-radius:8px;padding:12px;margin:6px 0;color:#333}
+.abid{font-size:28px;font-weight:800;color:#27ae60;text-align:center;margin:5px 0;}
+.notif{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#e91e8c;color:#fff;padding:10px 24px;border-radius:8px;font-size:16px;font-weight:700;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.notif.show{opacity:1}
+.rule-section{margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #444}
+.rule-section h4{color:#e91e8c;font-size:16px;margin-bottom:6px}
+.rule-section p,.rule-section li{font-size:14px;color:#ccc;line-height:1.5}
+.rule-section ul{margin-left:15px}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-thumb{background:#e91e8c;border-radius:3px;}
+</style>
+</head>
+<body>
+
+<!-- Sound Toggle -->
+<button class="fullscreen-toggle" id="fullscreenToggle" onclick="toggleFullscreen()" title="Toggle Fullscreen">⛶</button>
+<button class="sound-toggle" id="soundToggle" onclick="toggleSound()" title="Toggle Sound">🔊</button>
+
+<div style="width:100%;max-width:1200px;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+  <div>
+    <div style="font-size:10px;color:#aaa;letter-spacing:2px;margin-bottom:2px">MZee</div>
+    <h1>💼 BUSINESS TYCOON</h1>
+  </div>
+  <button class="btn" style="width:auto;padding:5px 12px" onclick="window.location.href = './gamemode.html'">← Back</button>
+</div>
+
+<!-- LOBBY SCREEN -->
+<div id="s-lobby" class="screen active">
+  <div class="invite-box">
+    <div style="font-size:12px;color:#aaa;margin-bottom:4px">Share this code with friends</div>
+    <div class="invite-code" id="roomCode">------</div>
+    <button class="copy-btn" onclick="copyCode()">📋 Copy code</button>
+  </div>
+  <div class="player-list" id="lobbyPlayers">
+    <h3>Players (waiting for host to start…)</h3>
+  </div>
+  <button id="startBtn" class="start-btn" onclick="socket.emit('startGame')" style="display:none">🚀 Start Game</button>
+  <button class="btn" onclick="leaveRoom()" style="background:#c62828;border-color:#c62828;margin-top:10px">← Leave Room</button>
+  <div id="lobby-status" style="font-size:12px;color:#888;text-align:center;margin-top:8px">Connecting…</div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="s-game" class="screen">
+  <div id="leftPanel">
+    <div class="ib">
+      <h3>👥 Players</h3>
+      <div class="pb" id="playerCards"></div>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <button class="btn" onclick="openM('mRules')" style="background:#1565c0;border-color:#1565c0;flex:1">📖 Rule Book</button>
+      <button class="btn" onclick="openNetWorth()" style="background:#27ae60;border-color:#27ae60;flex:1">💎 Net Worth</button>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px">
+      <button class="btn" id="hostEndGameBtn" onclick="openHostEndGame()" style="background:#c62828;border-color:#c62828;flex:1;display:none">🏁 End Game</button>
+    </div>
+    <div class="ib">
+      <h3 style="display:flex;justify-content:space-between;align-items:center">📜 Game Log <span onclick="openLogModal()" style="font-size:12px;cursor:pointer;color:#4dd0e1">🔍 Expand</span></h3>
+      <div class="log" id="glog"></div>
+    </div>
+  </div>
+
+  <div id="centerPanel">
+    <div id="boardOuter"><div id="bGrid"></div></div>
+  </div>
+
+  <div id="rightPanel">
+    <div class="ib" id="gameTimerPanel" style="display:none;background:linear-gradient(135deg,#1a1a2e,#2a2a4e);border:2px solid #ffd700">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:12px;color:#ffd700;font-weight:700">⏱️ GAME TIME</span>
+        <span id="gameTimerDisplay" style="font-size:18px;font-weight:900;color:#fff">--:--:--</span>
+      </div>
+      <div class="timer-bar" style="margin-top:8px"><div class="timer-fill" id="gameTimerFill" style="width:100%;background:linear-gradient(90deg,#27ae60,#f1c40f,#e74c3c)"></div></div>
+    </div>
+    <div class="ib">
+      <h3 id="turnLabel">Your turn</h3>
+      <div class="turn-timer" id="turnTimer" style="display:none">
+        <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
+        <div class="timer-text" id="timerText">60s</div>
+      </div>
+      <div class="diceRow">
+        <div class="die" id="d1">—</div>
+        <div class="die" id="d2">—</div>
+      </div>
+      <div style="font-size:14px;color:#aaa;text-align:center;margin-bottom:4px" id="diceInfo"></div>
+    </div>
+    <div class="ib" id="actionPanel">
+      <h3>⚡ Actions</h3>
+      <div id="actionBtns"></div>
+    </div>
+    <div class="ib">
+      <h3>💬 Chat</h3>
+      <div class="chat-wrap">
+        <div class="chat-msgs" id="chatMsgs"></div>
+        <div class="chat-input">
+          <input id="chatIn" type="text" placeholder="Say something…" maxlength="120" onkeydown="if(event.key==='Enter')sendChat()"/>
+          <button onclick="sendChat()">Send</button>
+        </div>
+      </div>
+    </div>
+    <div class="ib" id="myInfoPanel">
+      <h3>💰 My Holdings</h3>
+      <div id="myInfo" style="font-size:14px;color:#aaa"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+
+<!-- Rule Book Modal -->
+<div class="mb" id="mRules">
+  <div class="mo" style="max-width:450px;max-height:90vh">
+    <h2>📖 Rule Book</h2>
+    <div class="rule-section">
+      <h4>🎯 Objective</h4>
+      <p>Be the last player standing! Buy properties, collect rent, and bankrupt your opponents.</p>
+    </div>
+    <div class="rule-section">
+      <h4>💰 Starting</h4>
+      <p>Each player starts with <b style="color:#27ae60">Rs.50,000</b> and a token on START.</p>
+    </div>
+    <div class="rule-section">
+      <h4>🎲 Playing</h4>
+      <ul>
+        <li>Roll dice and move your token clockwise</li>
+        <li>Pass START → Collect <b>Rs.2,000</b></li>
+        <li>Land on property → Buy it or Auction</li>
+        <li>Land on owned property → Pay rent</li>
+      </ul>
+    </div>
+    <div class="rule-section">
+      <h4>🎴 CHANCE Cards (by dice total)</h4>
+      <p style="color:#c0392b;font-weight:700;margin-bottom:5px">EVEN Numbers = PAY:</p>
+      <ul style="font-size:10px">
+        <li><b>#2</b> — Inflation → Pay Rs.200</li>
+        <li><b>#4</b> — Fire insurance → Pay Rs.2,000</li>
+        <li><b>#6</b> — Share loss → Pay Rs.1,500</li>
+        <li><b>#8</b> — Drunk driving → Pay Rs.3,000</li>
+        <li><b>#10</b> — Donation → Pay Rs.1,000</li>
+        <li><b>#12</b> — Parking fine → Pay Rs.500</li>
+      </ul>
+      <p style="color:#27ae60;font-weight:700;margin:8px 0 5px">ODD Numbers = COLLECT (except #7):</p>
+      <ul style="font-size:10px">
+        <li><b>#3</b> — Lottery → Collect Rs.2,000</li>
+        <li><b>#5</b> — TV prize → Collect Rs.3,000</li>
+        <li style="color:#c62828"><b>#7</b> — 🔒 GO TO PRISON!</li>
+        <li><b>#9</b> — Dividend → Collect Rs.1,000</li>
+        <li><b>#11</b> — Inheritance → Collect Rs.4,000</li>
+      </ul>
+    </div>
+    <div class="rule-section">
+      <h4>🤝 COMMUNITY CHEST Cards (by dice total)</h4>
+      <p style="color:#27ae60;font-weight:700;margin-bottom:5px">EVEN Numbers = COLLECT:</p>
+      <ul style="font-size:10px">
+        <li><b>#2</b> — Birthday → Rs.1,000 from EACH player</li>
+        <li><b>#4</b> — Tax refund → Collect Rs.4,000</li>
+        <li><b>#6</b> — Interest → Collect Rs.1,000</li>
+        <li><b>#8</b> — Stock sale → Collect Rs.6,000</li>
+        <li><b>#10</b> — Game show → Collect Rs.5,000</li>
+        <li><b>#12</b> — Bonus → Collect Rs.2,000</li>
+      </ul>
+      <p style="color:#c0392b;font-weight:700;margin:8px 0 5px">ODD Numbers = PAY:</p>
+      <ul style="font-size:10px">
+        <li><b>#3</b> — Insurance → Pay Rs.200</li>
+        <li><b>#5</b> — Donation → Pay Rs.1,000</li>
+        <li><b>#7</b> — Consultancy → Pay Rs.1,500</li>
+        <li><b>#9</b> — Repairs → Pay Rs.500</li>
+        <li><b>#11</b> — Hospital → Pay Rs.2,000</li>
+      </ul>
+    </div>
+    <div class="rule-section">
+      <h4>🏠🏨 Building Houses & Hotels</h4>
+      <p><b style="color:#c62828">IMPORTANT:</b> You must own ALL cities in a color group to build! You can build either <b>houses</b> (🏠 up to 3) OR <b>1 hotel</b> (🏨) per city — NOT both! Each costs 50% of property price.</p>
+    </div>
+    <div class="rule-section">
+      <h4>🚂 Utilities</h4>
+      <p>Railways, Airways, Roadways, Waterways, Electric & Gas Co. — Rent is 50% of the purchase price.</p>
+    </div>
+    <div class="rule-section">
+      <h4>🔒 Prison</h4>
+      <ul>
+        <li>Roll doubles to escape (3 attempts)</li>
+        <li>Or pay Rs.500 fine</li>
+      </ul>
+    </div>
+    <div class="rule-section">
+      <h4>🎰 Club</h4>
+      <p>Landing here means you pay <b style="color:#c0392b">Rs.100 to each other player</b> + <b style="color:#c0392b">Rs.100 to the bank</b>.</p>
+    </div>
+    <div class="rule-section">
+      <h4>🏡 Rest House</h4>
+      <p>Landing here means you <b style="color:#27ae60">collect Rs.100 from each other player</b> + <b style="color:#27ae60">Rs.100 from the bank</b> and <b style="color:#c0392b">skip your next turn</b>.</p>
+    </div>
+    <div class="rule-section">
+      <h4>🏦 Bank Loan</h4>
+      <p><b style="color:#c0392b">ONE-TIME ONLY!</b> Borrow up to Rs.20,000. No interest! <b>Must repay at game end to win!</b></p>
+    </div>
+    <div class="rule-section">
+      <h4>💸 Taxes</h4>
+      <ul>
+        <li><b>Income Tax:</b> Pay Rs.100</li>
+        <li><b>Wealth Tax:</b> Pay Rs.100</li>
+      </ul>
+    </div>
+    <button class="btn p" onclick="closeM('mRules')" style="margin-top:10px">Close</button>
+  </div>
+</div>
+
+<!-- Expanded Log Modal -->
+<div class="mb" id="mLog">
+  <div class="mo" style="max-width:500px;max-height:80vh">
+    <h2>📜 Full Game Log</h2>
+    <div id="fullLog" style="background:#111;border:1px solid #333;border-radius:8px;padding:12px;max-height:60vh;overflow-y:auto;font-size:14px;color:#aaa;line-height:1.6"></div>
+    <button class="btn p" onclick="closeM('mLog')" style="margin-top:12px">Close</button>
+  </div>
+</div>
+
+<!-- City Details Modal -->
+<div class="mb" id="mCityDetails">
+  <div class="mo" style="max-width:380px;padding:0;overflow:hidden;background:#fff;border-radius:12px">
+    <div id="cityColorBar" style="height:32px;width:100%"></div>
+    <div style="padding:20px;background:#fff">
+      <h2 id="cityTitle" style="text-align:center;margin-bottom:4px;color:#222;font-size:22px"></h2>
+      <div id="cityPrice" style="text-align:center;font-size:20px;font-weight:700;color:#e91e8c;margin-bottom:16px"></div>
+      <div id="cityBody" style="font-size:14px;color:#333"></div>
+      <button class="btn" onclick="closeM('mCityDetails')" style="width:100%;background:#333;color:#fff;padding:12px;border-radius:6px;font-size:14px;margin-top:16px">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Buy Property -->
+<div class="mb" id="mBuy">
+  <div class="mo" style="max-width:340px;padding:0;overflow:hidden;background:#fff;border-radius:12px">
+    <div id="propColorBar" style="height:28px;width:100%"></div>
+    <div style="padding:20px;background:#fff">
+      <h2 id="buyTitle" style="text-align:center;margin-bottom:4px;color:#222;font-size:20px"></h2>
+      <div id="buyPrice" style="text-align:center;font-size:18px;font-weight:700;color:#e91e8c;margin-bottom:16px"></div>
+      <div id="buyBody" style="font-size:12px;color:#333"></div>
+      <div id="buyBtns" style="display:flex;gap:6px;justify-content:center;margin-top:16px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Manage Properties -->
+<div class="mb" id="mMng">
+  <div class="mo">
+    <h2>🏗 Manage Properties</h2>
+    <div class="tabs">
+      <div class="tab a" onclick="swTab('mBuild',0)">Hotels</div>
+      <div class="tab" onclick="swTab('mMortgage',1)">Mortgage</div>
+      <div class="tab" onclick="swTab('mUnmortgage',2)">Unmortgage</div>
+    </div>
+    <div id="mBuild" class="tp a" style="max-height:260px;overflow-y:auto"></div>
+    <div id="mMortgage" class="tp" style="max-height:260px;overflow-y:auto"></div>
+    <div id="mUnmortgage" class="tp" style="max-height:260px;overflow-y:auto"></div>
+    <button class="btn" style="margin-top:10px" onclick="closeM('mMng')">Close</button>
+  </div>
+</div>
+
+<!-- Loan -->
+<div class="mb" id="mLoan">
+  <div class="mo">
+    <h2>🏦 Bank Loan</h2>
+    <div id="loanInfo" style="font-size:12px;color:#aaa;margin-bottom:10px"></div>
+    
+    <div id="takeLoanSection">
+      <label>Loan amount (Rs.100–20,000)</label>
+      <input id="lamt" type="number" value="5000" min="100" max="20000" step="100"/>
+      <button class="btn p" onclick="takeLoan()" style="margin-top:8px">💰 Take Loan</button>
+    </div>
+    
+    <div id="repayLoanSection" style="margin-top:16px;padding-top:16px;border-top:1px solid #333;display:none">
+      <label>Repay amount</label>
+      <input id="repayAmt" type="number" value="0" min="100" step="100"/>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="btn g" onclick="repayLoan()">💵 Repay</button>
+        <button class="btn w" onclick="repayFullLoan()">✅ Repay Full</button>
+      </div>
+    </div>
+    
+    <button class="btn" onclick="closeM('mLoan')" style="margin-top:16px">✖ Close</button>
+  </div>
+</div>
+
+<!-- Warning Modal -->
+<div class="mb" id="mWarning">
+  <div class="mo" style="text-align:center">
+    <div style="font-size:48px;margin-bottom:10px">⚠️</div>
+    <h2 style="color:#f39c12">Warning</h2>
+    <div id="warningText" style="font-size:14px;color:#fff;margin:16px 0;padding:12px;background:#2a2a2a;border-radius:8px"></div>
+    <button class="btn" onclick="closeM('mWarning')" style="width:100%">✖ Close</button>
+  </div>
+</div>
+
+<!-- Net Worth Modal -->
+<div class="mb" id="mNetWorth">
+  <div class="mo" style="max-width:500px;max-height:85vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2 style="margin:0">💎 Net Worth Rankings</h2>
+      <button onclick="closeM('mNetWorth')" style="background:none;border:none;color:#aaa;font-size:24px;cursor:pointer">✖</button>
+    </div>
+    <div id="netWorthContent"></div>
+    <button class="btn" onclick="closeM('mNetWorth')" style="width:100%;margin-top:16px">✖ Close</button>
+  </div>
+</div>
+
+<!-- Player Details Modal -->
+<div class="mb" id="mPlayerDetails">
+  <div class="mo" style="max-width:500px;max-height:85vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2 id="playerDetailsTitle" style="margin:0">👤 Player Details</h2>
+      <button onclick="closeM('mPlayerDetails')" style="background:none;border:none;color:#aaa;font-size:24px;cursor:pointer">✖</button>
+    </div>
+    <div id="playerDetailsContent"></div>
+    <button class="btn" onclick="closeM('mPlayerDetails')" style="width:100%;margin-top:16px">✖ Close</button>
+  </div>
+</div>
+
+<!-- Auction -->
+<div class="mb" id="mAuc">
+  <div class="mo">
+    <h2>🔨 Auction</h2>
+    <div id="aucInfo" style="font-size:13px;color:#aaa;margin-bottom:10px"></div>
+    <div id="aucBtns" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+  </div>
+</div>
+
+<!-- Trade -->
+<div class="mb" id="mTrade">
+  <div class="mo">
+    <h2>🤝 Propose Trade</h2>
+    <label>Trade with</label>
+    <select id="tTarget" onchange="refreshTradeGet()"></select>
+    <label>You give (property)</label>
+    <select id="tGive"></select>
+    <label>You give (cash Rs.)</label>
+    <input id="tGiveCash" type="number" value="0" min="0" step="100"/>
+    <label>You receive (property)</label>
+    <select id="tGet"></select>
+    <label>You receive (cash Rs.)</label>
+    <input id="tGetCash" type="number" value="0" min="0" step="100"/>
+    <div style="display:flex;gap:6px;margin-top:12px">
+      <button class="btn p" onclick="doTrade()">Propose</button>
+      <button class="btn" onclick="closeM('mTrade')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Incoming Trade -->
+<div class="mb" id="mInTrade">
+  <div class="mo">
+    <h2>🤝 Trade Proposal</h2>
+    <div id="inTradeBody" style="font-size:13px;color:#aaa;margin-bottom:12px"></div>
+    <div style="display:flex;gap:6px">
+      <button class="btn g" onclick="socket.emit('acceptTrade');closeM('mInTrade')">Accept</button>
+      <button class="btn w" onclick="socket.emit('rejectTrade');closeM('mInTrade')">Reject</button>
+    </div>
+  </div>
+</div>
+
+<!-- Chance Card -->
+<div class="mb" id="mChance">
+  <div class="mo">
+    <div class="card-chance">
+      <div style="font-size:14px;font-weight:800;color:#e65100;margin-bottom:6px">🎴 CHANCE</div>
+      <p id="chanceText" style="font-size:13px;color:#333;font-weight:600;line-height:1.6"></p>
+    </div>
+    <div class="mbtns"><button class="btn o" onclick="closeM('mChance')">OK</button></div>
+  </div>
+</div>
+
+<!-- Community Chest Card -->
+<div class="mb" id="mComm">
+  <div class="mo">
+    <div class="card-comm">
+      <div style="font-size:14px;font-weight:800;color:#2e7d32;margin-bottom:6px">🤝 COMMUNITY CHEST</div>
+      <p id="commText" style="font-size:13px;color:#333;font-weight:600;line-height:1.6"></p>
+    </div>
+    <div class="mbtns"><button class="btn g" onclick="closeM('mComm')">OK</button></div>
+  </div>
+</div>
+
+<!-- Chance Rules Enlarged -->
+<div class="mb" id="mChanceRules">
+  <div class="mo" style="max-width:420px">
+    <h2 style="color:#e65100">🎴 CHANCE CARDS</h2>
+    <p style="font-size:11px;color:#888;margin-bottom:12px">EVEN numbers = PAY money | ODD numbers = COLLECT (except #7)</p>
+    <div style="background:linear-gradient(135deg,#fff8e1,#ffe0b2);border:2px solid #ff6f00;border-radius:10px;padding:12px;margin-bottom:10px">
+      <h4 style="color:#e65100;margin-bottom:8px;font-size:13px">💸 EVEN — YOU PAY</h4>
+      <div style="font-size:12px;color:#5d4037;line-height:1.8">
+        <div><b>#2</b> — Inflation hit! Pay Rs.200</div>
+        <div><b>#4</b> — House fire! Pay Rs.2,000 insurance</div>
+        <div><b>#6</b> — Share Market loss — Pay Rs.1,500</div>
+        <div><b>#8</b> — Drunk driving fine — Pay Rs.3,000</div>
+        <div><b>#10</b> — Charity donation — Pay Rs.1,000</div>
+        <div><b>#12</b> — Parking violation — Pay Rs.500</div>
+      </div>
+    </div>
+    <div style="background:linear-gradient(135deg,#fff8e1,#ffe0b2);border:2px solid #ff6f00;border-radius:10px;padding:12px">
+      <h4 style="color:#2e7d32;margin-bottom:8px;font-size:13px">💰 ODD — COLLECT / SPECIAL</h4>
+      <div style="font-size:12px;color:#5d4037;line-height:1.8">
+        <div><b>#3</b> — Lottery winner! Collect Rs.2,000</div>
+        <div><b>#5</b> — Reality TV prize! Collect Rs.3,000</div>
+        <div style="color:#c62828"><b>#7</b> — 🔒 GO TO PRISON!</div>
+        <div><b>#9</b> — Stock dividend! Collect Rs.1,000</div>
+        <div><b>#11</b> — Inheritance! Collect Rs.4,000</div>
+      </div>
+    </div>
+    <button class="btn o" onclick="closeM('mChanceRules')" style="margin-top:12px;width:100%">Close</button>
+  </div>
+</div>
+
+<!-- Community Chest Rules Enlarged -->
+<div class="mb" id="mCommRules">
+  <div class="mo" style="max-width:420px">
+    <h2 style="color:#2e7d32">🤝 COMMUNITY CHEST CARDS</h2>
+    <p style="font-size:11px;color:#888;margin-bottom:12px">EVEN numbers = COLLECT money | ODD numbers = PAY money</p>
+    <div style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border:2px solid #2e7d32;border-radius:10px;padding:12px;margin-bottom:10px">
+      <h4 style="color:#2e7d32;margin-bottom:8px;font-size:13px">💰 EVEN — YOU COLLECT</h4>
+      <div style="font-size:12px;color:#1b5e20;line-height:1.8">
+        <div><b>#2</b> — Birthday! Collect Rs.1,000 from EACH player</div>
+        <div><b>#4</b> — Income Tax refund! Collect Rs.4,000</div>
+        <div><b>#6</b> — Share investment interest! Collect Rs.1,000</div>
+        <div><b>#8</b> — Sale of Stocks! Collect Rs.6,000</div>
+        <div><b>#10</b> — Game show winner! Collect Rs.5,000</div>
+        <div><b>#12</b> — Annual bonus! Collect Rs.2,000</div>
+      </div>
+    </div>
+    <div style="background:linear-gradient(135deg,#e8f5e9,#c8e6c9);border:2px solid #2e7d32;border-radius:10px;padding:12px">
+      <h4 style="color:#c0392b;margin-bottom:8px;font-size:13px">💸 ODD — YOU PAY</h4>
+      <div style="font-size:12px;color:#1b5e20;line-height:1.8">
+        <div><b>#3</b> — Insurance premium — Pay Rs.200</div>
+        <div><b>#5</b> — Donation to charity — Pay Rs.1,000</div>
+        <div><b>#7</b> — Consultancy fees — Pay Rs.1,500</div>
+        <div><b>#9</b> — Home repair costs — Pay Rs.500</div>
+        <div><b>#11</b> — Hospital bills — Pay Rs.2,000</div>
+      </div>
+    </div>
+    <button class="btn g" onclick="closeM('mCommRules')" style="margin-top:12px;width:100%">Close</button>
+  </div>
+</div>
+
+<!-- End Game -->
+<div class="mb" id="mEnd">
+  <div class="mo" style="text-align:center">
+    <h2>🏆 Game Over!</h2>
+    <div id="endContent" style="font-size:16px;padding:16px 0;color:#aaa"></div>
+    <button class="btn p" onclick="window.location.href = './gamemode.html'" style="margin-top:8px">Back to Menu</button>
+  </div>
+</div>
+
+<!-- Host End Game Modal -->
+<div class="mb" id="mHostEndGame">
+  <div class="mo" style="text-align:center;max-width:450px">
+    <div style="font-size:48px;margin-bottom:10px">🏁</div>
+    <h2 style="color:#f39c12">End Game Early?</h2>
+    <p style="font-size:14px;color:#aaa;margin:16px 0">As the host, you can propose to end the game early. All players will vote on whether to end the game or continue playing.</p>
+    <div style="background:#2a2a2a;border-radius:10px;padding:16px;margin:16px 0;text-align:left">
+      <div style="font-size:13px;color:#aaa;margin-bottom:8px">If the vote passes:</div>
+      <div style="font-size:12px;color:#888;line-height:1.6">
+        • The game ends immediately<br>
+        • The player with the highest NET WORTH wins<br>
+        • Net worth = Cash + Property values + Buildings - Loans
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:16px">
+      <button class="btn w" onclick="initiateEndGameVote()" style="flex:1">🗳️ Start Vote</button>
+      <button class="btn" onclick="closeM('mHostEndGame')" style="flex:1">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- End Game Vote Modal (for all players) -->
+<div class="mb" id="mEndGameVote">
+  <div class="mo" style="text-align:center;max-width:450px">
+    <div style="font-size:48px;margin-bottom:10px">🗳️</div>
+    <h2 style="color:#f39c12">End Game Vote!</h2>
+    <p id="endGameVoteInitiator" style="font-size:14px;color:#aaa;margin:12px 0"></p>
+    <div style="background:#2a2a2a;border-radius:10px;padding:16px;margin:16px 0">
+      <div style="font-size:14px;color:#fff;margin-bottom:12px">Do you want to end the game now?</div>
+      <div style="font-size:12px;color:#888;line-height:1.6">
+        Winner will be determined by NET WORTH<br>
+        (Cash + Property + Buildings - Loans)
+      </div>
+    </div>
+    <div id="endGameVoteStatus" style="background:#1a1a1a;border-radius:8px;padding:12px;margin:16px 0;font-size:13px"></div>
+    <div id="endGameVoteBtns" style="display:flex;gap:8px;justify-content:center;margin-top:16px">
+      <button class="btn g" onclick="voteEndGame('yes')" style="flex:1">✅ Yes, End Game</button>
+      <button class="btn w" onclick="voteEndGame('no')" style="flex:1">❌ No, Continue</button>
+    </div>
+    <div id="endGameVoteWaiting" style="display:none;color:#aaa;font-size:14px;margin-top:16px">
+      ⏳ Waiting for other players to vote...
+    </div>
+    <button class="btn" onclick="closeM('mEndGameVote')" style="margin-top:16px;background:#333">✖ Close</button>
+  </div>
+</div>
+
+<!-- Building Costs Info Modal -->
+<div class="mb" id="mBuildingCosts">
+  <div class="mo" style="max-width:500px;max-height:85vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h2 style="margin:0">🏗️ Building Costs</h2>
+      <button onclick="closeM('mBuildingCosts')" style="background:none;border:none;color:#aaa;font-size:24px;cursor:pointer">✖</button>
+    </div>
+    <div style="background:#2a2a2a;border-radius:10px;padding:16px;margin-bottom:16px">
+      <div style="font-size:14px;color:#fff;margin-bottom:12px;text-align:center">
+        <b>Building Cost = 50% of Property Price</b>
+      </div>
+      <div style="font-size:12px;color:#aaa;text-align:center;line-height:1.6">
+        🏠 Houses and 🏨 Hotels cost the same<br>
+        You must own ALL cities in a color group to build
+      </div>
+    </div>
+    <div id="buildingCostsList"></div>
+    <button class="btn" onclick="closeM('mBuildingCosts')" style="width:100%;margin-top:16px">✖ Close</button>
+  </div>
+</div>
+
+<!-- Time Expired Modal (Host Only) -->
+<div class="mb" id="mTimeExpired">
+  <div class="mo" style="text-align:center;max-width:450px">
+    <div style="font-size:48px;margin-bottom:10px">⏰</div>
+    <h2 style="color:#f39c12">Time's Up!</h2>
+    <p style="font-size:14px;color:#aaa;margin:16px 0">The game time has expired! As the host, you can extend the game or end it now.</p>
+    <div style="background:#2a2a2a;border-radius:10px;padding:16px;margin:16px 0">
+      <div style="font-size:13px;color:#aaa;margin-bottom:12px">Choose extension time:</div>
+      <div class="duration-grid" id="extendDurationSelect">
+        <div class="dur-opt sel" data-hours="1" onclick="selectExtendDuration(1, this)">+1 Hour</div>
+        <div class="dur-opt" data-hours="2" onclick="selectExtendDuration(2, this)">+2 Hours</div>
+        <div class="dur-opt" data-hours="3" onclick="selectExtendDuration(3, this)">+3 Hours</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:16px">
+      <button class="btn g" onclick="extendGameTime()" style="flex:1">⏱️ Extend Time</button>
+      <button class="btn w" onclick="endGameNow()" style="flex:1">🏁 End Game Now</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.duration-grid{display:flex;gap:8px;flex-wrap:wrap}
+.dur-opt{padding:10px 16px;background:#1a1a2e;border:2px solid #444;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:#aaa;transition:all 0.2s;text-align:center;flex:1;min-width:70px}
+.dur-opt:hover{border-color:#e91e8c;color:#fff}
+.dur-opt.sel{border-color:#ffd700;background:#2a2a4e;color:#ffd700;box-shadow:0 0 10px rgba(255,215,0,0.3)}
+</style>
+
+<!-- End Game Loan Repayment Modal -->
+<div class="mb" id="mEndGameLoan">
+  <div class="mo" style="text-align:center;max-width:500px;max-height:85vh;overflow-y:auto">
+    <div style="font-size:48px;margin-bottom:10px">🏦</div>
+    <h2 style="color:#e91e8c">LOAN REPAYMENT REQUIRED!</h2>
+    <p style="font-size:14px;color:#aaa;margin:12px 0">You have an outstanding loan. You must repay it before claiming victory!</p>
+    
+    <div id="endGameLoanInfo" style="background:#2a2a2a;border-radius:10px;padding:16px;margin:16px 0;text-align:left"></div>
+    
+    <div id="endGameMortgageSection" style="display:none;margin-top:16px">
+      <h3 style="color:#f39c12;margin-bottom:12px">🏗️ Mortgage Properties to Get Funds</h3>
+      <p style="font-size:12px;color:#888;margin-bottom:10px">Properties with hotels will have hotels mortgaged too!</p>
+      <div id="endGameMortgageList" style="max-height:200px;overflow-y:auto;background:#1a1a1a;border-radius:8px;padding:10px"></div>
+    </div>
+    
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:20px">
+      <button class="btn g" id="endGameRepayBtn" onclick="endGameRepayLoan()">💰 Repay Loan</button>
+      <button class="btn w" id="endGameSkipBtn" onclick="endGameSkipRepayment()">❌ Cannot Pay (Forfeit)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Club Debt Modal -->
+<div class="mb" id="mClubDebt">
+  <div class="mo" style="text-align:center">
+    <div style="font-size:48px;margin-bottom:10px">🎰</div>
+    <h2 style="color:#c0392b">CLUB DEBT!</h2>
+    <div id="clubDebtInfo" style="font-size:14px;color:#aaa;margin:12px 0;padding:12px;background:#2a2a2a;border-radius:8px"></div>
+    <p style="font-size:12px;color:#888;margin-bottom:12px">You must pay before ending your turn!<br>Use Mortgage or Bank Loan to get funds.</p>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
+      <button class="btn" onclick="openManageForDebt()">🏗 Mortgage</button>
+      <button class="btn" onclick="openLoanForDebt()">🏦 Take Loan</button>
+      <button class="btn g" id="payClubDebtBtn" onclick="payClubDebt()">💰 Pay Debt</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rest House Debt Modal -->
+<div class="mb" id="mRestDebt">
+  <div class="mo" style="text-align:center">
+    <div style="font-size:48px;margin-bottom:10px">🏡</div>
+    <h2 style="color:#c0392b">YOU OWE MONEY!</h2>
+    <div id="restDebtInfo" style="font-size:14px;color:#aaa;margin:12px 0;padding:12px;background:#2a2a2a;border-radius:8px"></div>
+    <p style="font-size:12px;color:#888;margin-bottom:12px">A player landed on Rest House. You must pay!<br>Use Mortgage or Bank Loan to get funds.</p>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
+      <button class="btn" onclick="openManageForDebt()">🏗 Mortgage</button>
+      <button class="btn" onclick="openLoanForDebt()">🏦 Take Loan</button>
+      <button class="btn g" id="payRestDebtBtn" onclick="payRestHouseDebt()">💰 Pay Rs.100</button>
+    </div>
+  </div>
+</div>
+
+<div id="notif" class="notif"></div>
+
+<!-- Rent Debt Modal -->
+<div class="mb" id="mRentDebt">
+  <div class="mo" style="text-align:center">
+    <div style="font-size:48px;margin-bottom:10px">🏠</div>
+    <h2 style="color:#c0392b">RENT DUE!</h2>
+    <div id="rentDebtInfo" style="font-size:14px;color:#aaa;margin:12px 0;padding:12px;background:#2a2a2a;border-radius:8px"></div>
+    <p style="font-size:12px;color:#888;margin-bottom:12px">You must pay rent before ending your turn!<br>Use Mortgage or Bank Loan to get funds.</p>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
+      <button class="btn" onclick="openManageForDebt()">🏗 Mortgage</button>
+      <button class="btn" onclick="openLoanForDebt()">🏦 Take Loan</button>
+      <button class="btn g" id="payRentDebtBtn" onclick="payRentDebt()">💰 Pay Rent</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rent Paid Card (shows to ALL players for 7 seconds) -->
+<div id="rentPaidCard" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:600;animation:cardPopIn 0.4s ease;">
+  <div style="background:linear-gradient(135deg,#1e3c72,#2a5298);border:4px solid #ffd700;border-radius:16px;padding:24px 32px;min-width:320px;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.5);text-align:center">
+    <div style="font-size:14px;color:#ffd700;font-weight:700;letter-spacing:2px;margin-bottom:8px">💰 RENT PAID 💰</div>
+    <div id="rentCardProperty" style="font-size:24px;font-weight:900;color:#fff;margin:12px 0"></div>
+    <div id="rentCardColorBar" style="height:8px;border-radius:4px;margin:12px auto;width:80%"></div>
+    <div id="rentCardAmount" style="font-size:32px;font-weight:900;color:#27ae60;margin:12px 0"></div>
+    <div style="display:flex;justify-content:space-around;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.2)">
+      <div>
+        <div style="font-size:10px;color:#aaa;margin-bottom:4px">PAID BY</div>
+        <div id="rentCardPayer" style="font-size:20px;color:#ff6b6b;font-weight:700"></div>
+      </div>
+      <div style="font-size:24px;color:#ffd700">→</div>
+      <div>
+        <div style="font-size:10px;color:#aaa;margin-bottom:4px">RECEIVED BY</div>
+        <div id="rentCardOwner" style="font-size:20px;color:#27ae60;font-weight:700"></div>
+      </div>
+    </div>
+    <div id="rentCardHotels" style="font-size:14px;color:#ffd700;margin-top:12px"></div>
+    <button onclick="document.getElementById('rentPaidCard').style.display='none'" style="margin-top:16px;background:#333;color:#fff;border:2px solid #ffd700;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer">✖ Close</button>
+  </div>
+</div>
+
+<!-- Tax Paid Card (shows to ALL players for 7 seconds) -->
+<div id="taxPaidCard" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:600;animation:cardPopIn 0.4s ease;">
+  <div style="background:linear-gradient(135deg,#8e0000,#c62828);border:4px solid #ffd700;border-radius:16px;padding:24px 32px;min-width:300px;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.5);text-align:center">
+    <div style="font-size:48px;margin-bottom:8px">💸</div>
+    <div id="taxCardType" style="font-size:22px;font-weight:900;color:#fff;margin:8px 0"></div>
+    <div id="taxCardAmount" style="font-size:36px;font-weight:900;color:#ffd700;margin:12px 0"></div>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.2)">
+      <div style="font-size:10px;color:#aaa;margin-bottom:4px">PAID BY</div>
+      <div id="taxCardPayer" style="font-size:22px;color:#fff;font-weight:700"></div>
+    </div>
+    <div style="font-size:12px;color:#ffcdd2;margin-top:12px">Paid to the Bank 🏦</div>
+    <button onclick="document.getElementById('taxPaidCard').style.display='none'" style="margin-top:16px;background:#333;color:#fff;border:2px solid #ffd700;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer">✖ Close</button>
+  </div>
+</div>
+
+<!-- Club Paid Card (shows to ALL players for 7 seconds) -->
+<div id="clubPaidCard" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:600;animation:cardPopIn 0.4s ease;">
+  <div style="background:linear-gradient(135deg,#4a148c,#7b1fa2);border:4px solid #ffd700;border-radius:16px;padding:24px 32px;min-width:320px;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.5);text-align:center">
+    <div style="font-size:48px;margin-bottom:8px">🎰</div>
+    <div style="font-size:14px;color:#ffd700;font-weight:700;letter-spacing:2px;margin-bottom:8px">CLUB PAYMENT</div>
+    <div id="clubCardAmount" style="font-size:36px;font-weight:900;color:#ff6b6b;margin:12px 0"></div>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.2)">
+      <div style="font-size:10px;color:#aaa;margin-bottom:4px">PAID BY</div>
+      <div id="clubCardPayer" style="font-size:22px;color:#fff;font-weight:700"></div>
+    </div>
+    <div id="clubCardRecipients" style="font-size:14px;color:#ce93d8;margin-top:12px"></div>
+    <button onclick="document.getElementById('clubPaidCard').style.display='none'" style="margin-top:16px;background:#333;color:#fff;border:2px solid #ffd700;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer">✖ Close</button>
+  </div>
+</div>
+
+<!-- Rest House Paid Card (shows to ALL players for 7 seconds) -->
+<div id="restHousePaidCard" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:600;animation:cardPopIn 0.4s ease;">
+  <div style="background:linear-gradient(135deg,#1b5e20,#388e3c);border:4px solid #ffd700;border-radius:16px;padding:24px 32px;min-width:320px;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.5);text-align:center">
+    <div style="font-size:48px;margin-bottom:8px">🏡</div>
+    <div style="font-size:14px;color:#ffd700;font-weight:700;letter-spacing:2px;margin-bottom:8px">REST HOUSE BONUS</div>
+    <div id="restHouseCardAmount" style="font-size:36px;font-weight:900;color:#69f0ae;margin:12px 0"></div>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.2)">
+      <div style="font-size:10px;color:#aaa;margin-bottom:4px">RECEIVED BY</div>
+      <div id="restHouseCardReceiver" style="font-size:22px;color:#fff;font-weight:700"></div>
+    </div>
+    <div id="restHouseCardPayers" style="font-size:14px;color:#a5d6a7;margin-top:12px"></div>
+    <button onclick="document.getElementById('restHousePaidCard').style.display='none'" style="margin-top:16px;background:#333;color:#fff;border:2px solid #ffd700;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:700;cursor:pointer">✖ Close</button>
+  </div>
+</div>
+
+<style>
+@keyframes cardPopIn {
+  0% { transform: translate(-50%,-50%) scale(0.5); opacity: 0; }
+  50% { transform: translate(-50%,-50%) scale(1.05); }
+  100% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+}
+@keyframes cardPopOut {
+  0% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(0.5); opacity: 0; }
+}
+</style>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// SOUND SYSTEM - Web Audio API with procedural sounds
+// ═══════════════════════════════════════════════════════════════════════════
+let audioCtx = null;
+let soundEnabled = true;
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playSound(type) {
+  if (!soundEnabled) return;
+  initAudio();
+  if (!audioCtx) return;
+  
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  
+  switch(type) {
+    case 'dice':
+      // Quick rattle sound
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(200, now);
+      osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+      osc.frequency.exponentialRampToValueAtTime(300, now + 0.2);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+      osc.start(now);
+      osc.stop(now + 0.25);
+      break;
+    case 'buy':
+      // Cha-ching sound
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, now);
+      osc.frequency.setValueAtTime(1000, now + 0.1);
+      osc.frequency.setValueAtTime(1200, now + 0.2);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+      osc.start(now);
+      osc.stop(now + 0.4);
+      break;
+    case 'pay':
+      // Descending tone
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(500, now);
+      osc.frequency.exponentialRampToValueAtTime(200, now + 0.3);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+      osc.start(now);
+      osc.stop(now + 0.3);
+      break;
+    case 'collect':
+      // Happy ascending arpeggio
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523, now);
+      osc.frequency.setValueAtTime(659, now + 0.1);
+      osc.frequency.setValueAtTime(784, now + 0.2);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+      osc.start(now);
+      osc.stop(now + 0.35);
+      break;
+    case 'jail':
+      // Ominous low tone
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, now);
+      osc.frequency.exponentialRampToValueAtTime(80, now + 0.5);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+      osc.start(now);
+      osc.stop(now + 0.5);
+      break;
+    case 'turn':
+      // Quick beep for your turn
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, now);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+      osc.start(now);
+      osc.stop(now + 0.15);
+      break;
+    case 'chat':
+      // Soft pop
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, now);
+      osc.frequency.exponentialRampToValueAtTime(400, now + 0.08);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+      osc.start(now);
+      osc.stop(now + 0.1);
+      break;
+    case 'win':
+      // Victory fanfare
+      const notes = [523, 659, 784, 1047];
+      notes.forEach((freq, i) => {
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        o.type = 'sine';
+        o.frequency.setValueAtTime(freq, now + i * 0.15);
+        g.gain.setValueAtTime(0.2, now + i * 0.15);
+        g.gain.exponentialRampToValueAtTime(0.01, now + i * 0.15 + 0.3);
+        o.start(now + i * 0.15);
+        o.stop(now + i * 0.15 + 0.3);
+      });
+      return;
+    case 'lose':
+      // Sad descending tones
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(400, now);
+      osc.frequency.exponentialRampToValueAtTime(200, now + 0.3);
+      osc.frequency.exponentialRampToValueAtTime(100, now + 0.6);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
+      osc.start(now);
+      osc.stop(now + 0.7);
+      break;
+    case 'tick':
+      // Timer tick
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1000, now);
+      gain.gain.setValueAtTime(0.05, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+      osc.start(now);
+      osc.stop(now + 0.05);
+      break;
+    case 'move':
+      // Token hop sound
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(300, now);
+      osc.frequency.exponentialRampToValueAtTime(500, now + 0.05);
+      osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+      osc.start(now);
+      osc.stop(now + 0.1);
+      break;
+  }
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('soundToggle');
+  btn.textContent = soundEnabled ? '🔊' : '🔇';
+  btn.classList.toggle('muted', !soundEnabled);
+  if (soundEnabled) playSound('turn');
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => {
+      console.log('Fullscreen error:', err);
+    });
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+// Create pawn SVG for player tokens - SQUARE aspect ratio to prevent clipping
+function createPawnSvg(color, size = 28) {
+  const id = 'pg_' + color.replace('#','') + '_' + Math.random().toString(36).substr(2,5);
+  const strokeColor = (color === '#ffffff' || color === '#fff') ? '#333' : '#fff';
+  return `<svg viewBox="0 0 30 40" width="${size}" height="${size}" style="filter:drop-shadow(0 2px 3px rgba(0,0,0,0.6))">
+    <defs>
+      <linearGradient id="${id}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:${color};stop-opacity:1"/>
+        <stop offset="100%" style="stop-color:${color};stop-opacity:0.7"/>
+      </linearGradient>
+    </defs>
+    <ellipse cx="15" cy="7" rx="6" ry="6" fill="url(#${id})" stroke="${strokeColor}" stroke-width="1.5"/>
+    <path d="M9 13 Q6 22 5 38 L25 38 Q24 22 21 13 Z" fill="url(#${id})" stroke="${strokeColor}" stroke-width="1.5"/>
+  </svg>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TURN TIMER SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════
+const TURN_TIME = 60; // seconds
+let turnTimerInterval = null;
+let turnTimeRemaining = TURN_TIME;
+let lastTurnPlayer = null;
+
+function startTurnTimer() {
+  clearInterval(turnTimerInterval);
+  turnTimeRemaining = TURN_TIME;
+  updateTimerDisplay();
+  document.getElementById('turnTimer').style.display = 'flex';
+  
+  turnTimerInterval = setInterval(() => {
+    turnTimeRemaining--;
+    updateTimerDisplay();
+    
+    // Play tick sound in last 10 seconds
+    if (turnTimeRemaining <= 10 && turnTimeRemaining > 0) {
+      playSound('tick');
+    }
+    
+    // Auto end turn when time runs out
+    if (turnTimeRemaining <= 0) {
+      clearInterval(turnTimerInterval);
+      if (gs && gs.players[gs.cur]?.id === userId) {
+        socket.emit('forceEndTurn');
+        showNotif('⏱️ Time\'s up! Turn ended automatically.');
+        playSound('pay');
+      }
+    }
+  }, 1000);
+}
+
+function stopTurnTimer() {
+  clearInterval(turnTimerInterval);
+  document.getElementById('turnTimer').style.display = 'none';
+}
+
+function updateTimerDisplay() {
+  const fill = document.getElementById('timerFill');
+  const text = document.getElementById('timerText');
+  const pct = (turnTimeRemaining / TURN_TIME) * 100;
+  fill.style.width = pct + '%';
+  text.textContent = turnTimeRemaining + 's';
+  fill.classList.toggle('urgent', turnTimeRemaining <= 15);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOKEN ANIMATION SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════
+let previousPositions = {};
+
+function animateTokenMove(playerId, fromPos, toPos) {
+  // Calculate path around the board
+  const path = [];
+  let pos = fromPos;
+  while (pos !== toPos) {
+    pos = (pos + 1) % 36;
+    path.push(pos);
+  }
+  
+  // Animate each step
+  path.forEach((stepPos, i) => {
+    setTimeout(() => {
+      playSound('move');
+      // Temporarily show token at this position
+      const tokEl = document.getElementById('ctok-' + stepPos);
+      if (tokEl) {
+        const player = gs?.players.find(p => p.id === playerId);
+        if (player) {
+          const span = document.createElement('span');
+          span.innerHTML = createPawnSvg(player.color, 12);
+          span.className = 'token-hop';
+          span.title = player.name;
+          span.style.cssText = `display:inline-flex;align-items:center;justify-content:center`;
+          tokEl.appendChild(span);
+          // Always remove after animation - renderBoard will add the permanent token
+          setTimeout(() => span.remove(), 250);
+        }
+      }
+    }, i * 120);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN GAME CODE
+// ═══════════════════════════════════════════════════════════════════════════
+const token    = sessionStorage.getItem('token');
+const username = sessionStorage.getItem('username');
+const userId   = sessionStorage.getItem('userId');
+const action   = sessionStorage.getItem('action');
+const joinCode = sessionStorage.getItem('code') || '';
+const myTok    = sessionStorage.getItem('tok')   || '🔵';
+const myColor  = sessionStorage.getItem('color') || '#e91e8c';
+const gameDuration = parseInt(sessionStorage.getItem('gameDuration')) || 1;
+const robotCount = parseInt(sessionStorage.getItem('robotCount')) || 1;
+
+if (!token) { window.location.href = './'; }
+
+const socket = io({ path: '/games/business-tycoon/socket.io', auth: { token } });
+
+let gs = null;
+let myCode = '';
+
+const GRP_COLOR = {brown:'#795548',lblue:'#29b6f6',pink:'#f06292',orange:'#ff7043',red:'#ef5350',yellow:'#fdd835',green:'#66bb6a',dblue:'#1565c0'};
+
+socket.on('connect', () => {
+  if (action === 'create') socket.emit('createRoom', { tok: myTok, color: myColor, duration: gameDuration });
+  else if (action === 'join') socket.emit('joinRoom', { code: joinCode, tok: myTok, color: myColor });
+  else if (action === 'robot') socket.emit('createRobotGame', { tok: myTok, color: myColor, duration: gameDuration, robotCount: robotCount });
+});
+
+socket.on('authError', (msg) => { alert(msg); window.location.href = './'; });
+socket.on('joinError', (msg) => { showNotif(msg, true); setTimeout(()=>window.location.href = './lobby.html',2500); });
+socket.on('roomCreated', (code) => { myCode = code; document.getElementById('roomCode').textContent = code; playSound('collect'); });
+socket.on('notification', (msg) => { showNotif(msg); playSound('chat'); });
+
+// Warning handler - shows modal with close button
+socket.on('warning', (msg) => {
+  playSound('pay');
+  showWarning(msg);
+});
+
+// Debt warning handlers
+socket.on('clubDebtWarning', (data) => {
+  playSound('pay');
+  document.getElementById('clubDebtInfo').innerHTML = `
+    <div style="font-size:24px;color:#c0392b;font-weight:700">You owe Rs.${data.amount}</div>
+    <div style="margin-top:8px">Your balance: <b style="color:${data.has >= data.amount ? '#27ae60' : '#c0392b'}">Rs.${data.has}</b></div>
+    ${data.has < data.amount ? '<div style="color:#e65100;margin-top:5px">⚠️ Not enough! Mortgage or take loan first.</div>' : ''}
+  `;
+  document.getElementById('payClubDebtBtn').disabled = data.has < data.amount;
+  openM('mClubDebt');
+});
+
+socket.on('restHouseDebtWarning', (data) => {
+  playSound('pay');
+  document.getElementById('restDebtInfo').innerHTML = `
+    <div style="font-size:18px;color:#c0392b;font-weight:700">You owe Rs.${data.amount} to ${data.to}</div>
+    <div style="margin-top:8px">Your balance: <b style="color:${gs && gs.players.find(p=>p.id===userId)?.money >= data.amount ? '#27ae60' : '#c0392b'}">Rs.${gs ? gs.players.find(p=>p.id===userId)?.money : '?'}</b></div>
+  `;
+  openM('mRestDebt');
+});
+
+// Rent debt warning handler
+socket.on('rentDebtWarning', (data) => {
+  playSound('pay');
+  document.getElementById('rentDebtInfo').innerHTML = `
+    <div style="font-size:20px;color:#c0392b;font-weight:700">You owe Rs.${data.amount}</div>
+    <div style="margin-top:6px;font-size:14px">Property: <b>${data.propertyName}</b></div>
+    <div style="margin-top:4px;font-size:14px">Owner: <b>${data.ownerName}</b></div>
+    <div style="margin-top:8px">Your balance: <b style="color:${data.has >= data.amount ? '#27ae60' : '#c0392b'}">Rs.${data.has}</b></div>
+    ${data.has < data.amount ? '<div style="color:#e65100;margin-top:5px">⚠️ Not enough! Mortgage or take loan first.</div>' : '<div style="color:#27ae60;margin-top:5px">✅ You can pay now!</div>'}
+  `;
+  document.getElementById('payRentDebtBtn').disabled = data.has < data.amount;
+  openM('mRentDebt');
+});
+
+// Rent paid notification - shows to ALL players for 7 seconds
+socket.on('rentPaid', (data) => {
+  playSound('collect');
+  
+  const GRP_COLORS = {brown:'#795548',lblue:'#29b6f6',pink:'#f06292',orange:'#ff7043',red:'#ef5350',yellow:'#fdd835',green:'#66bb6a',dblue:'#1565c0'};
+  
+  document.getElementById('rentCardProperty').textContent = data.propertyName;
+  document.getElementById('rentCardAmount').textContent = 'Rs.' + data.amount.toLocaleString();
+  document.getElementById('rentCardPayer').textContent = data.payerTok + ' ' + data.payerName;
+  document.getElementById('rentCardOwner').textContent = data.ownerTok + ' ' + data.ownerName;
+  document.getElementById('rentCardColorBar').style.background = GRP_COLORS[data.group] || '#666';
+  document.getElementById('rentCardHotels').textContent = data.hotels > 0 ? '🏨'.repeat(data.hotels) + ' ' + data.hotels + ' Hotel' + (data.hotels > 1 ? 's' : '') : '';
+  
+  const card = document.getElementById('rentPaidCard');
+  card.style.display = 'block';
+  card.style.animation = 'cardPopIn 0.4s ease';
+  
+  // Auto-hide after 7 seconds
+  setTimeout(() => {
+    card.style.animation = 'cardPopOut 0.3s ease forwards';
+    setTimeout(() => {
+      card.style.display = 'none';
+    }, 300);
+  }, 7000);
+});
+
+// Tax paid notification - shows to ALL players for 7 seconds
+socket.on('taxPaid', (data) => {
+  playSound('pay');
+  
+  document.getElementById('taxCardType').textContent = data.taxType;
+  document.getElementById('taxCardAmount').textContent = 'Rs.' + data.amount.toLocaleString();
+  document.getElementById('taxCardPayer').textContent = data.payerTok + ' ' + data.payerName;
+  
+  const card = document.getElementById('taxPaidCard');
+  card.style.display = 'block';
+  card.style.animation = 'cardPopIn 0.4s ease';
+  
+  // Auto-hide after 7 seconds
+  setTimeout(() => {
+    card.style.animation = 'cardPopOut 0.3s ease forwards';
+    setTimeout(() => {
+      card.style.display = 'none';
+    }, 300);
+  }, 7000);
+});
+
+// Club paid notification - shows to ALL players for 7 seconds
+socket.on('clubPaid', (data) => {
+  playSound('pay');
+  
+  document.getElementById('clubCardAmount').textContent = 'Rs.' + data.totalAmount.toLocaleString();
+  document.getElementById('clubCardPayer').textContent = data.payerTok + ' ' + data.payerName;
+  document.getElementById('clubCardRecipients').textContent = `Paid to ${data.playerCount} player${data.playerCount !== 1 ? 's' : ''} + Bank 🏦`;
+  
+  const card = document.getElementById('clubPaidCard');
+  card.style.display = 'block';
+  card.style.animation = 'cardPopIn 0.4s ease';
+  
+  // Auto-hide after 7 seconds
+  setTimeout(() => {
+    card.style.animation = 'cardPopOut 0.3s ease forwards';
+    setTimeout(() => {
+      card.style.display = 'none';
+    }, 300);
+  }, 7000);
+});
+
+// Rest House paid notification - shows to ALL players for 7 seconds
+socket.on('restHousePaid', (data) => {
+  playSound('collect');
+  
+  document.getElementById('restHouseCardAmount').textContent = 'Rs.' + data.totalAmount.toLocaleString();
+  document.getElementById('restHouseCardReceiver').textContent = data.receiverTok + ' ' + data.receiverName;
+  document.getElementById('restHouseCardPayers').textContent = `Collected from ${data.playerCount} player${data.playerCount !== 1 ? 's' : ''} + Bank 🏦`;
+  
+  const card = document.getElementById('restHousePaidCard');
+  card.style.display = 'block';
+  card.style.animation = 'cardPopIn 0.4s ease';
+  
+  // Auto-hide after 7 seconds
+  setTimeout(() => {
+    card.style.animation = 'cardPopOut 0.3s ease forwards';
+    setTimeout(() => {
+      card.style.display = 'none';
+    }, 300);
+  }, 7000);
+});
+
+socket.on('showCard', (data) => {
+  if (data.type === 'chance') {
+    document.getElementById('chanceText').textContent = data.text;
+    openM('mChance');
+    // Play appropriate sound based on card action
+    if (data.text.includes('Pay') || data.text.includes('PRISON')) playSound('pay');
+    else playSound('collect');
+  } else {
+    document.getElementById('commText').textContent = data.text;
+    openM('mComm');
+    if (data.text.includes('Pay')) playSound('pay');
+    else playSound('collect');
+  }
+});
+
+socket.on('tradeProposal', (t) => {
+  const body = document.getElementById('inTradeBody');
+  const gc = t.giveCell !== null ? (gs?.cells[t.giveCell]?.name || '') : '';
+  const rc = t.getCell !== null ? (gs?.cells[t.getCell]?.name || '') : '';
+  body.innerHTML = `<b>${t.fromName}</b> offers:<br>
+    ${t.giveCash ? '💰 Rs.'+t.giveCash : ''} ${gc ? '🏠 '+gc : ''}<br>
+    In exchange for:<br>
+    ${t.getCash ? '💰 Rs.'+t.getCash : ''} ${rc ? '🏠 '+rc : ''}`;
+  openM('mInTrade');
+});
+
+socket.on('gameState', (state) => {
+  const prevState = gs;
+  gs = state;
+  if (!myCode) myCode = state.code;
+  document.getElementById('roomCode').textContent = state.code;
+  
+  if (state.phase === 'lobby') { 
+    showS('lobby'); 
+    renderLobby(state); 
+    stopTurnTimer();
+  }
+  else if (state.phase === 'playing' || state.phase === 'ended') {
+    showS('game'); 
+    
+    // Detect turn change and play sound / start timer
+    const currentPlayer = state.players[state.cur];
+    if (prevState && currentPlayer && prevState.cur !== state.cur) {
+      if (currentPlayer.id === userId) {
+        playSound('turn');
+        startTurnTimer();
+      } else {
+        startTurnTimer(); // Show timer for all players
+      }
+    } else if (!prevState && state.phase === 'playing') {
+      // Game just started
+      if (currentPlayer?.id === userId) playSound('turn');
+      startTurnTimer();
+    }
+    
+    // Detect token movements for animation
+    if (prevState && prevState.phase === 'playing') {
+      state.players.forEach(p => {
+        const prev = prevState.players.find(pp => pp.id === p.id);
+        if (prev && prev.pos !== p.pos && !p.bk) {
+          // Token moved - animate it
+          animateTokenMove(p.id, prev.pos, p.pos);
+        }
+      });
+    }
+    
+    // Detect money changes for sounds
+    if (prevState) {
+      const me = state.players.find(p => p.id === userId);
+      const prevMe = prevState.players.find(p => p.id === userId);
+      if (me && prevMe) {
+        if (me.money > prevMe.money) playSound('collect');
+        else if (me.money < prevMe.money) playSound('pay');
+      }
+      // Detect property purchase
+      state.players.forEach(p => {
+        const prev = prevState.players.find(pp => pp.id === p.id);
+        if (prev && p.props.length > prev.props.length) {
+          playSound('buy');
+        }
+      });
+      // Detect jail
+      state.players.forEach(p => {
+        const prev = prevState.players.find(pp => pp.id === p.id);
+        if (prev && !prev.jailed && p.jailed) {
+          playSound('jail');
+        }
+      });
+    }
+    
+    renderGame(state);
+    
+    // Handle loan repayment phase at game end
+    if (state.phase === 'loanRepayment') {
+      stopTurnTimer();
+      if (state.loanRepaymentPlayer === userId) {
+        showEndGameLoanModal(state);
+      } else {
+        // Show waiting message for other players
+        showNotif('Waiting for winner to repay their loan...');
+      }
+    }
+    else if (state.phase === 'ended') {
+      stopTurnTimer();
+      closeM('mEndGameLoan'); // Close loan modal if open
+      const winner = state.players.find(p => p.id === state.winner);
+      if (winner?.id === userId) playSound('win');
+      else playSound('lose');
+      showEnd(state);
+    }
+  }
+});
+
+function showS(id) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('s-'+id).classList.add('active'); }
+function openM(id) { document.getElementById(id).classList.add('open'); }
+function closeM(id) { document.getElementById(id).classList.remove('open'); }
+function swTab(id, idx) {
+  document.querySelectorAll('.tp').forEach(p=>p.classList.remove('a'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('a'));
+  document.getElementById(id).classList.add('a');
+  document.querySelectorAll('.tab')[idx].classList.add('a');
+}
+function showNotif(msg, isErr) {
+  const el = document.getElementById('notif');
+  el.textContent = msg; el.style.background = isErr ? '#c0392b' : '#e91e8c';
+  el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 3000);
+}
+function copyCode() { navigator.clipboard.writeText(myCode).then(()=>showNotif('Code copied!')); }
+
+function leaveRoom() {
+  socket.emit('leaveRoom');
+  sessionStorage.removeItem('code');
+  sessionStorage.removeItem('action');
+  window.location.href = './lobby.html';
+}
+
+function renderLobby(state) {
+  const list = document.getElementById('lobbyPlayers');
+  list.innerHTML = `<h3>Players (${state.players.length}/6)</h3>`;
+  state.players.forEach(p => {
+    const pawnSvg = createPawnSvg(p.color, 28);
+    list.innerHTML += `<div class="pl-item">
+      <span style="display:inline-flex;align-items:center;justify-content:center">${pawnSvg}</span>
+      <span style="color:${p.color};font-weight:700">${p.name}</span>
+      ${p.isGuest?'<span style="font-size:10px;color:#888">(guest)</span>':''}
+      <div class="pl-dot ${p.connected?'':'off'}" style="margin-left:auto"></div>
+    </div>`;
+  });
+  const startBtn = document.getElementById('startBtn');
+  const status = document.getElementById('lobby-status');
+  if (state.hostId === userId) {
+    startBtn.style.display = state.players.length >= 2 ? 'block' : 'none';
+    status.textContent = state.players.length < 2 ? 'Waiting for at least 1 more player…' : 'Ready to start!';
+  } else {
+    startBtn.style.display = 'none';
+    status.textContent = 'Waiting for the host to start the game…';
+  }
+}
+
+let boardBuilt = false;
+function renderGame(state) {
+  if (!boardBuilt) { buildBoard(state); boardBuilt = true; }
+  renderPlayers(state);
+  renderBoard(state);
+  renderActions(state);
+  renderLog(state);
+  renderChat(state);
+  renderMyInfo(state);
+  renderAuction(state);
+  checkAndShowDebtModals(state);
+  updateGameTimer(state);
+  
+  // Start game timer tick when game starts
+  if (state.phase === 'playing' && state.gameEndTime && !gameTimerInterval) {
+    startGameTimerTick();
+  }
+  
+  // Show/hide host End Game button
+  const hostEndGameBtn = document.getElementById('hostEndGameBtn');
+  if (hostEndGameBtn) {
+    hostEndGameBtn.style.display = (state.hostId === userId && state.phase === 'playing') ? 'block' : 'none';
+  }
+}
+
+function cellGridPos(id) {
+  if (id === 0)  return { col: 1,  row: 10, orient: 'corner' };
+  if (id === 9)  return { col: 1,  row: 1,  orient: 'corner' };
+  if (id === 18) return { col: 10, row: 1,  orient: 'corner' };
+  if (id === 27) return { col: 10, row: 10, orient: 'corner' };
+  if (id >= 1 && id <= 8) return { col: 1, row: 10 - id, orient: 'left' };
+  if (id >= 10 && id <= 17) return { col: id - 8, row: 1, orient: 'top' };
+  if (id >= 19 && id <= 26) return { col: 10, row: id - 17, orient: 'right' };
+  if (id >= 28 && id <= 35) return { col: 37 - id, row: 10, orient: 'bottom' };
+  return { col: 1, row: 1, orient: 'corner' };
+}
+
+function buildBoard(state) {
+  const grid = document.getElementById('bGrid');
+  grid.innerHTML = '';
+  
+  const center = document.createElement('div');
+  center.id = 'bCenter';
+  center.innerHTML = `
+    <div class="center-title">
+      <div style="font-size:24px;font-weight:900;color:#e91e8c;font-style:italic;text-shadow:0 0 10px #e91e8c">BUSINESS TYCOON</div>
+      <div style="font-size:12px;color:#888;margin-top:4px">🎲 Dice total = Card # | 🎰 Club: Pay Rs.100 each + bank | 🏡 Rest: Get Rs.100 each + bank + skip</div>
+    </div>
+    <div class="card-quadrant chance-quad" onclick="openM('mChanceRules')" style="cursor:pointer">
+      <h4>🎴 CHANCE — EVEN (PAY) <span style="font-size:10px">👆 Click to enlarge</span></h4>
+      <ul>
+        <li><b>#2</b> — Pay Rs.200 (Inflation)</li>
+        <li><b>#4</b> — Pay Rs.2,000 (Fire insurance)</li>
+        <li><b>#6</b> — Pay Rs.1,500 (Share loss)</li>
+        <li><b>#8</b> — Pay Rs.3,000 (Drunk driving)</li>
+        <li><b>#10</b> — Pay Rs.1,000 (Donation)</li>
+        <li><b>#12</b> — Pay Rs.500 (Parking fine)</li>
+      </ul>
+    </div>
+    <div class="card-quadrant comm-quad" onclick="openM('mCommRules')" style="cursor:pointer">
+      <h4>🤝 COMMUNITY — EVEN (COLLECT) <span style="font-size:10px">👆 Click</span></h4>
+      <ul>
+        <li><b>#2</b> — Collect Rs.1,000 from each!</li>
+        <li><b>#4</b> — Collect Rs.4,000 (Tax refund)</li>
+        <li><b>#6</b> — Collect Rs.1,000 (Interest)</li>
+        <li><b>#8</b> — Collect Rs.6,000 (Stock sale)</li>
+        <li><b>#10</b> — Collect Rs.5,000 (Game show)</li>
+        <li><b>#12</b> — Collect Rs.2,000 (Bonus)</li>
+      </ul>
+    </div>
+    <div class="card-quadrant chance-quad" onclick="openM('mChanceRules')" style="cursor:pointer">
+      <h4>🎴 CHANCE — ODD <span style="font-size:10px">👆 Click</span></h4>
+      <ul>
+        <li><b>#3</b> — Collect Rs.2,000 (Lottery)</li>
+        <li><b>#5</b> — Collect Rs.3,000 (TV prize)</li>
+        <li><b>#7</b> — 🔒 GO TO PRISON!</li>
+        <li><b>#9</b> — Collect Rs.1,000 (Dividend)</li>
+        <li><b>#11</b> — Collect Rs.4,000 (Inheritance)</li>
+      </ul>
+    </div>
+    <div class="card-quadrant comm-quad" onclick="openM('mCommRules')" style="cursor:pointer">
+      <h4>🤝 COMMUNITY — ODD (PAY) <span style="font-size:10px">👆 Click</span></h4>
+      <ul>
+        <li><b>#3</b> — Pay Rs.200 (Insurance)</li>
+        <li><b>#5</b> — Pay Rs.1,000 (Donation)</li>
+        <li><b>#7</b> — Pay Rs.1,500 (Consultancy)</li>
+        <li><b>#9</b> — Pay Rs.500 (Repairs)</li>
+        <li><b>#11</b> — Pay Rs.2,000 (Hospital)</li>
+      </ul>
+    </div>`;
+  grid.appendChild(center);
+
+  state.cells.forEach(cell => {
+    const pos = cellGridPos(cell.id);
+    const el = makeCell(cell, pos.orient, state);
+    el.style.gridColumn = pos.col;
+    el.style.gridRow = pos.row;
+    grid.appendChild(el);
+  });
+}
+
+function makeCell(cell, orient, state) {
+  const el = document.createElement('div');
+  el.id = 'cell-' + cell.id;
+  const serialBadge = `<div class="serial">${cell.id}</div>`;
+
+  if (orient === 'corner') {
+    el.className = 'corner c-' + cell.sub;
+    if (cell.sub === 'start')
+      el.innerHTML = `${serialBadge}<div style="font-size:36px">🚀</div><div style="font-size:16px;font-weight:900;color:#e91e8c">START</div><div style="font-size:12px;color:#c2185b">Collect Rs.2,000</div><div id="ctok-${cell.id}" class="ctoks"></div>`;
+    else if (cell.sub === 'prison')
+      el.innerHTML = `${serialBadge}<div style="font-size:36px">🔒</div><div style="font-size:16px;font-weight:900;color:#b71c1c">PRISON!!!!</div><div id="ctok-${cell.id}" class="ctoks"></div>`;
+    else if (cell.sub === 'club')
+      el.innerHTML = `${serialBadge}<div style="font-size:36px">🎰</div><div style="font-size:16px;font-weight:900;color:#2e7d32">CLUB</div><div style="font-size:10px;color:#388e3c">Pay Rs.100 each<br>+ Rs.100 bank</div><div id="ctok-${cell.id}" class="ctoks"></div>`;
+    else if (cell.sub === 'rhouse')
+      el.innerHTML = `${serialBadge}<div style="font-size:36px">🏡</div><div style="font-size:14px;font-weight:900;color:#f57f17">REST HOUSE</div><div style="font-size:9px;color:#f9a825">Get Rs.100 each<br>+ Rs.100 bank + skip</div><div id="ctok-${cell.id}" class="ctoks"></div>`;
+    return el;
+  }
+
+  const isVert = (orient === 'bottom' || orient === 'top');
+  const isFlipped = (orient === 'top' || orient === 'right');
+  el.className = (isVert ? 'vcell' : 'hcell') + (isFlipped ? ' flip' : '');
+  if (cell.mtg) el.classList.add('mortgaged');
+
+  if (cell.t === 'chance') el.classList.add('sp-chance');
+  if (cell.t === 'comm') el.classList.add('sp-comm');
+  if (cell.t === 'tax') el.classList.add('sp-tax');
+  if (cell.t === 'util') el.classList.add('sp-util');
+
+  let bar = '';
+  if (cell.t === 'prop' && cell.g) {
+    const bg = GRP_COLOR[cell.g];
+    bar = isVert
+      ? `<div class="cbar-top" style="background:${bg}"></div>`
+      : `<div class="cbar-side" style="background:${bg}"></div>`;
+  }
+
+  const owner = cell.owner ? state.players.find(p => p.id === cell.owner) : null;
+  const ownerStr = owner ? `<div class="cinfo">${owner.tok}${cell.mtg?'🔒':''}</div>` : '';
+
+  let body = '';
+  if (cell.t === 'prop') {
+    // Create buildings display element that can be updated dynamically
+    const buildingsDiv = `<div id="buildings-${cell.id}" style="display:flex;justify-content:center;gap:1px;min-height:18px"></div>`;
+    body = `<div class="cname">${cell.name}</div><div class="cprice">Rs.${cell.price}</div>${buildingsDiv}${ownerStr}<div id="ctok-${cell.id}" class="ctoks"></div>`;
+  } else if (cell.t === 'chance') {
+    body = `<div style="font-size:24px">🎴</div><div class="cname" style="color:#e65100">CHANCE</div><div id="ctok-${cell.id}" class="ctoks"></div>`;
+  } else if (cell.t === 'comm') {
+    body = `<div style="font-size:22px">🤝</div><div class="cname" style="color:#2e7d32">COMMUNITY<br>CHEST</div><div id="ctok-${cell.id}" class="ctoks"></div>`;
+  } else if (cell.t === 'tax') {
+    body = `<div style="font-size:22px">💰</div><div class="cname" style="color:#b71c1c">${cell.name}</div><div style="font-size:10px;color:#c0392b;text-align:center">Pay Rs.100</div><div id="ctok-${cell.id}" class="ctoks"></div>`;
+  } else if (cell.t === 'util') {
+    const tag = cell.tag || '🏢';
+    const rentDisplay = cell.rent && cell.rent[0] ? `<div style="font-size:10px;color:#666">Rent: Rs.${cell.rent[0]}</div>` : '';
+    body = `<div style="font-size:22px">${tag}</div><div class="cname" style="color:#1a237e">${cell.name}</div><div class="cprice">Rs.${cell.price}</div>${rentDisplay}${owner?`<div class="cinfo">${owner.tok}</div>`:''}<div id="ctok-${cell.id}" class="ctoks"></div>`;
+  }
+
+  el.innerHTML = serialBadge + bar + `<div class="cbody">${body}</div>`;
+  el.onclick = () => onCellClick(cell.id);
+  return el;
+}
+
+function renderBoard(state) {
+  state.cells.forEach(cell => {
+    const el = document.getElementById('cell-'+cell.id);
+    if (!el) return;
+    const tokEl = document.getElementById('ctok-'+cell.id);
+    if (tokEl) {
+      tokEl.innerHTML = state.players
+        .filter(p => p.pos === cell.id && !p.bk)
+        .map(p => `<span title="${p.name}" style="display:inline-flex;align-items:center;justify-content:center">${createPawnSvg(p.color, 16)}</span>`).join('');
+    }
+    
+    // Update buildings display for properties
+    if (cell.t === 'prop') {
+      const buildingsEl = document.getElementById('buildings-'+cell.id);
+      if (buildingsEl) {
+        let buildingsHtml = '';
+        if (cell.hc > 0 || cell.hotel > 0) {
+          const housesHtml = cell.hc > 0 ? `<span style="color:#c62828;font-size:14px">${'🏠'.repeat(cell.hc)}</span>` : '';
+          const hotelHtml = cell.hotel > 0 ? `<span style="color:#fff;font-size:16px;text-shadow:0 0 2px #000,0 0 4px #000">🏨</span>` : '';
+          buildingsHtml = housesHtml + hotelHtml;
+        }
+        buildingsEl.innerHTML = buildingsHtml;
+      }
+    }
+    
+    if (cell.mtg) el.classList.add('mortgaged'); else el.classList.remove('mortgaged');
+    const ownerColor = cell.owner ? state.players.find(p=>p.id===cell.owner)?.color : null;
+    if (ownerColor && cell.g) el.style.outline = '2px solid ' + ownerColor;
+    else el.style.outline = '';
+  });
+}
+
+function renderPlayers(state) {
+  const el = document.getElementById('playerCards');
+  el.innerHTML = '';
+  state.players.forEach(p => {
+    const isMe = p.id === userId;
+    const isCur = state.players[state.cur]?.id === p.id;
+    const cellInfo = state.cells ? state.cells[p.pos] : null;
+    const cellName = cellInfo ? cellInfo.name : 'Cell ' + p.pos;
+    const jailStatus = p.jailed ? `<div style="background:#ffcdd2;color:#b71c1c;font-size:9px;padding:2px 5px;border-radius:4px;margin-top:3px">🔒 IN PRISON (${p.jailTurns}/3 attempts)</div>` : '';
+    const pawnSvg = createPawnSvg(p.color, 30);
+    const nameColor = (p.color === '#ffffff' || p.color === '#fff') ? '#e91e8c' : p.color;
+    el.innerHTML += `<div class="ps ${isCur?'cur':''} ${isMe?'me':''} ${p.bk?'bk':''}" onclick="openPlayerDetails('${p.id}')" style="cursor:pointer" title="Click to view details">
+      <span style="float:right;display:inline-flex;align-items:center;justify-content:center">${pawnSvg}</span>
+      <div class="pn" style="color:${nameColor}">${p.name}${isMe?' (you)':''}${p.bk?' 💥':''}</div>
+      <div class="pm">💰 Rs.${p.money.toLocaleString()}${p.loan>0?' 🏦':''}</div>
+      <div class="pm">📍 [${p.pos}] ${cellName}</div>
+      ${jailStatus}
+      ${!p.connected?'<div style="font-size:9px;color:#e65100">⚡ Disconnected</div>':''}
+    </div>`;
+  });
+}
+
+function renderActions(state) {
+  const label = document.getElementById('turnLabel');
+  const btns = document.getElementById('actionBtns');
+  const diceInfo = document.getElementById('diceInfo');
+  const curP = state.players[state.cur];
+  const me = state.players.find(p => p.id === userId);
+  const isMe = curP?.id === userId;
+
+  label.textContent = isMe ? '⚡ Your turn!' : `${curP?.name}'s turn`;
+  label.style.color = isMe ? '#e91e8c' : '#aaa';
+
+  document.getElementById('d1').textContent = state.dice[0] || '—';
+  document.getElementById('d2').textContent = state.dice[1] || '—';
+  diceInfo.textContent = (state.dice[0]===state.dice[1] && state.rolled) ? '🎲 Doubles!' : '';
+
+  btns.innerHTML = '';
+  
+  // Not my turn or game not playing
+  if (!isMe || state.phase !== 'playing') return;
+
+  const p = curP;
+  const cell = state.cells[p.pos];
+
+  // PRISON: Show jail options if player is jailed
+  if (p.jailed) {
+    if (!state.rolled) {
+      // Check if player will be auto-released (3 attempts already used)
+      if (p.jailTurns >= 3) {
+        btns.innerHTML = `<div style="background:#e8f5e9;border:2px solid #27ae60;border-radius:8px;padding:12px;margin-bottom:12px;font-size:12px;color:#2e7d32;text-align:center">
+          <div style="font-size:28px;margin-bottom:6px">🔓</div>
+          <b style="font-size:14px">TIME SERVED!</b><br>
+          <span style="font-size:11px;color:#555">You served 3 turns — you're free! Roll to move.</span>
+        </div>`;
+        addBtn(btns, '🎲 Roll Dice', 'btn g', () => {
+          playSound('dice');
+          socket.emit('rollDice');
+          const d1 = document.getElementById('d1');
+          const d2 = document.getElementById('d2');
+          d1.classList.add('rolling');
+          d2.classList.add('rolling');
+          d1.textContent = '?';
+          d2.textContent = '?';
+          setTimeout(()=>{
+            d1.classList.remove('rolling');
+            d2.classList.remove('rolling');
+          }, 600);
+        });
+      } else {
+        // Before rolling - show jail escape options
+        const attemptNum = p.jailTurns + 1;
+        btns.innerHTML = `<div style="background:#ffebee;border:2px solid #c62828;border-radius:8px;padding:12px;margin-bottom:12px;font-size:12px;color:#b71c1c;text-align:center">
+          <div style="font-size:28px;margin-bottom:6px">🔒</div>
+          <b style="font-size:14px">YOU ARE IN PRISON!</b><br>
+          <span style="font-size:11px;color:#555">Attempt ${attemptNum}/3 — Roll doubles to escape<br>OR pay Rs.500 fine to get out</span>
+        </div>`;
+        addBtn(btns, '💰 Pay Rs.500 Fine', 'btn o', () => { playSound('pay'); socket.emit('payJailFine'); });
+        addBtn(btns, '🎲 Try to Roll Doubles', 'btn p', () => {
+          playSound('dice');
+          socket.emit('rollDice');
+          const d1 = document.getElementById('d1');
+          const d2 = document.getElementById('d2');
+          d1.classList.add('rolling');
+          d2.classList.add('rolling');
+          d1.textContent = '?';
+          d2.textContent = '?';
+          setTimeout(()=>{
+            d1.classList.remove('rolling');
+            d2.classList.remove('rolling');
+          }, 600);
+        });
+      }
+    } else {
+      // After rolling (and still in jail) - only show End Turn
+      btns.innerHTML = `<div style="background:#ffebee;border:2px solid #c62828;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#b71c1c;text-align:center">
+        <div style="font-size:20px">🔒</div>
+        <b>Still in Prison!</b><br>
+        <span style="font-size:10px">${p.jailTurns >= 3 ? 'Next turn you\'re free!' : 'Try again next turn...'}</span>
+      </div>`;
+      addBtn(btns, '⏭ End Turn', 'btn p', () => socket.emit('endTurn'));
+    }
+    return; // Don't show other options while in jail
+  }
+
+  // Normal turn - not in jail
+  if (!state.rolled) {
+    addBtn(btns, '🎲 Roll Dice', 'btn p', () => {
+      playSound('dice');
+      socket.emit('rollDice');
+      const d1 = document.getElementById('d1');
+      const d2 = document.getElementById('d2');
+      d1.classList.add('rolling');
+      d2.classList.add('rolling');
+      d1.textContent = '?';
+      d2.textContent = '?';
+      setTimeout(()=>{
+        d1.classList.remove('rolling');
+        d2.classList.remove('rolling');
+      }, 600);
+    });
+  }
+
+  if (state.rolled && cell && (cell.t==='prop'||cell.t==='util') && cell.owner===null && p.pos===cell.id) {
+    // Add question asking if player wants to buy
+    const questionDiv = document.createElement('div');
+    questionDiv.style.cssText = 'background:linear-gradient(135deg,#1a237e,#283593);border:2px solid #3f51b5;border-radius:10px;padding:12px;margin-bottom:10px;text-align:center;';
+    questionDiv.innerHTML = `
+      <div style="font-size:13px;color:#fff;margin-bottom:6px">🏠 You landed on an unowned property!</div>
+      <div style="font-size:16px;font-weight:800;color:#ffd700">Would you like to buy ${cell.name}?</div>
+      <div style="font-size:12px;color:#90caf9;margin-top:4px">Price: Rs.${cell.price.toLocaleString()}</div>
+    `;
+    btns.appendChild(questionDiv);
+    
+    const row = document.createElement('div'); row.className = 'btnRow';
+    addBtn(row, `✅ Buy Rs.${cell.price}`, 'btn g', () => socket.emit('buyProp', cell.id));
+    // Only show auction button if NOT playing with robots
+    if (!state.isRobotGame) {
+      addBtn(row, '🔨 Auction', 'btn o', () => socket.emit('passBuy', cell.id));
+    }
+    btns.appendChild(row);
+  }
+
+  if (state.rolled) addBtn(btns, '🏗 Manage Props', 'btn', () => openManage(state));
+  addBtn(btns, '🏦 Bank Loan', 'btn', () => openLoan(state));
+  if (state.players.filter(pl=>!pl.bk&&pl.id!==userId).length > 0) {
+    addBtn(btns, '🤝 Trade', 'btn', () => openTrade(state));
+  }
+  
+  // Show Club Debt warning and pay button if applicable
+  if (state.clubDebt && state.clubDebt.playerId === userId) {
+    btns.innerHTML = `<div style="background:#ffebee;border:2px solid #c62828;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#b71c1c;text-align:center">
+      <div style="font-size:20px">🎰</div>
+      <b>CLUB DEBT: Rs.${state.clubDebt.totalAmount}</b><br>
+      <span style="font-size:10px">You must pay before ending turn!</span>
+    </div>` + btns.innerHTML;
+    
+    const canPay = p.money >= state.clubDebt.totalAmount;
+    addBtn(btns, canPay ? '💰 Pay Club Debt' : '⚠️ Need More Money', canPay ? 'btn g' : 'btn w', () => {
+      if (canPay) {
+        socket.emit('payClubDebt');
+        playSound('pay');
+      } else {
+        showNotif('Mortgage properties or take a loan first!');
+      }
+    });
+  }
+  
+  // Show Rent Debt warning and pay button if applicable
+  if (state.rentDebt && state.rentDebt.playerId === userId) {
+    const owner = state.players.find(pl => pl.id === state.rentDebt.ownerId);
+    btns.innerHTML = `<div style="background:#ffebee;border:2px solid #c62828;border-radius:8px;padding:10px;margin-bottom:10px;font-size:12px;color:#b71c1c;text-align:center">
+      <div style="font-size:20px">🏠</div>
+      <b>RENT DUE: Rs.${state.rentDebt.amount}</b><br>
+      <span style="font-size:10px">Pay ${owner?.name || 'owner'} for ${state.rentDebt.cellName}</span>
+    </div>` + btns.innerHTML;
+    
+    const canPay = p.money >= state.rentDebt.amount;
+    addBtn(btns, canPay ? '💰 Pay Rent' : '⚠️ Need More Money', canPay ? 'btn g' : 'btn w', () => {
+      if (canPay) {
+        socket.emit('payRentDebt');
+        playSound('pay');
+      } else {
+        showNotif('Mortgage properties or take a loan first!');
+      }
+    });
+  }
+  
+  if (state.rolled) {
+    const hasClubDebt = state.clubDebt && state.clubDebt.playerId === userId;
+    const hasRentDebt = state.rentDebt && state.rentDebt.playerId === userId;
+    if (hasClubDebt || hasRentDebt) {
+      addBtn(btns, '⚠️ Pay Debt First!', 'btn', () => showNotif('You must pay your debt before ending turn!'));
+    } else {
+      addBtn(btns, '⏭ End Turn', 'btn p', () => socket.emit('endTurn'));
+    }
+  }
+}
+
+function addBtn(container, text, cls, fn) {
+  const b = document.createElement('button');
+  b.className = cls; b.textContent = text; b.style.marginBottom = '4px';
+  b.onclick = fn; container.appendChild(b);
+}
+
+function renderLog(state) {
+  const el = document.getElementById('glog');
+  el.innerHTML = (state.log||[]).map(l=>`<div>${l}</div>`).join('');
+}
+function renderChat(state) {
+  const el = document.getElementById('chatMsgs');
+  el.innerHTML = (state.chat||[]).map(m=>`<div><span class="cm">${m.from}:</span> ${m.msg}</div>`).join('');
+}
+function sendChat() {
+  const inp = document.getElementById('chatIn');
+  if (inp.value.trim()) { socket.emit('chat', inp.value.trim()); inp.value=''; }
+}
+
+function renderMyInfo(state) {
+  const me = state.players.find(p => p.id === userId);
+  if (!me) return;
+  const el = document.getElementById('myInfo');
+  const myProps = me.props.map(id => state.cells[id]).filter(Boolean);
+  el.innerHTML = `<div style="font-size:14px">💰 Rs.${me.money.toLocaleString()}</div>
+    ${me.loan>0?`<div style="font-size:14px">🏦 Loan: Rs.${me.loan.toLocaleString()} (No interest!)</div>`:''}
+    <div style="margin-top:8px;color:#aaa;font-size:13px">Properties (${myProps.length}): <span style="font-size:11px;color:#4dd0e1">👆 Click for details</span></div>
+    ${myProps.map(c=>{
+      const housesStr = c.hc > 0 ? `<span style="color:#c62828"> 🏠×${c.hc}</span>` : '';
+      const hotelStr = c.hotel > 0 ? `<span style="color:#fff"> 🏨</span>` : '';
+      return `<div onclick="showCityDetails(${c.id})" style="padding:4px 2px;border-bottom:1px solid #333;cursor:pointer;transition:background 0.2s;font-size:13px" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'">
+      <span style="color:${GRP_COLOR[c.g]||'#aaa'}">[${c.id}] ${c.name}</span>
+      ${c.mtg?'<span style="color:#888"> 🔒</span>':''}
+      ${housesStr}${hotelStr}
+    </div>`;
+    }).join('')}`;
+}
+
+function renderAuction(state) {
+  if (!state.auc) { closeM('mAuc'); return; }
+  const auc = state.auc;
+  const remaining = auc.order.filter(id=>!auc.passed.includes(id));
+  const curBidderId = remaining[auc.turn % remaining.length];
+  const curBidder = state.players.find(p => p.id === curBidderId);
+  const leader = auc.hId ? state.players.find(p=>p.id===auc.hId)?.name : 'No bids yet';
+
+  document.getElementById('aucInfo').innerHTML =
+    `<b>[${auc.cell.id}] ${auc.cell.name}</b> (Rs.${auc.cell.price})<br>
+    Current highest bid: <b>Rs.${auc.hi}</b><br>
+    Leader: ${leader}<br>
+    Bidding: <b>${curBidder?.name||'?'}</b>`;
+
+  const btnArea = document.getElementById('aucBtns');
+  btnArea.innerHTML = '';
+  if (curBidderId !== userId) {
+    btnArea.innerHTML = `<div style="font-size:12px;color:#aaa">Waiting for ${curBidder?.name}…</div>`;
+    return;
+  }
+  const me = state.players.find(p=>p.id===userId);
+  [auc.hi+100, auc.hi+500, auc.hi+1000].forEach(amt => {
+    if (me && me.money >= amt) {
+      const b = document.createElement('button');
+      b.className='btn p'; b.textContent='Bid Rs.'+amt;
+      b.onclick=()=>socket.emit('aucBid',amt);
+      btnArea.appendChild(b);
+    }
+  });
+  const pb = document.createElement('button');
+  pb.className='btn'; pb.textContent='Pass';
+  pb.onclick=()=>socket.emit('aucPass');
+  btnArea.appendChild(pb);
+  openM('mAuc');
+}
+
+function onCellClick(cellId) {
+  if (!gs) return;
+  const cell = gs.cells[cellId];
+  if (!cell || (cell.t!=='prop'&&cell.t!=='util')) return;
+  
+  const owner = cell.owner ? gs.players.find(p=>p.id===cell.owner) : null;
+  const colorHex = GRP_COLOR[cell.g] || '#666';
+  
+  // Set color bar
+  document.getElementById('propColorBar').style.background = colorHex;
+  
+  // Set title
+  document.getElementById('buyTitle').textContent = cell.name;
+  
+  // Set price
+  document.getElementById('buyPrice').textContent = `Rs. ${cell.price.toLocaleString()}`;
+  
+  let bodyHtml = '';
+  
+  if (cell.t === 'prop' && cell.rent) {
+    // Property card with full rent table
+    const buildCost = Math.floor(cell.price * 0.5);
+    const mortgageValue = Math.floor(cell.price * 0.5);
+    
+    // Current buildings display
+    const housesDisplay = cell.hc > 0 ? `<span style="color:#c62828">🏠×${cell.hc}</span>` : '';
+    const hotelDisplay = cell.hotel > 0 ? `<span style="color:#fff">🏨</span>` : '';
+    const buildingsStatus = housesDisplay || hotelDisplay ? `${housesDisplay} ${hotelDisplay}`.trim() : '';
+    
+    bodyHtml = `
+      <div style="background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px;padding:12px;margin-bottom:14px">
+        <table style="width:100%;font-size:12px;color:#222;border-collapse:collapse">
+          <tr style="border-bottom:1px solid #eee"><td style="padding:6px 0">Rent Site Only</td><td style="text-align:right;font-weight:700;color:#d32f2f">Rs. ${cell.rent[0].toLocaleString()}</td></tr>
+          <tr style="border-bottom:1px solid #eee"><td style="padding:6px 0;color:#c62828">🏠 1 House</td><td style="text-align:right;font-weight:700;color:#d32f2f">Rs. ${cell.rent[1].toLocaleString()}</td></tr>
+          <tr style="border-bottom:1px solid #eee"><td style="padding:6px 0;color:#c62828">🏠🏠 2 Houses</td><td style="text-align:right;font-weight:700;color:#d32f2f">Rs. ${cell.rent[2].toLocaleString()}</td></tr>
+          <tr style="border-bottom:1px solid #eee"><td style="padding:6px 0;color:#c62828">🏠🏠🏠 3 Houses</td><td style="text-align:right;font-weight:700;color:#d32f2f">Rs. ${cell.rent[3].toLocaleString()}</td></tr>
+          <tr><td style="padding:6px 0;color:#212121;font-weight:bold">🏨 With Hotel</td><td style="text-align:right;font-weight:700;color:#1565c0">Rs. ${cell.rent[4].toLocaleString()}</td></tr>
+        </table>
+      </div>
+      <div style="background:#e65100;border-radius:8px;padding:12px;margin-bottom:14px;text-align:center">
+        <div style="font-size:11px;color:#fff;opacity:0.9;margin-bottom:4px">🏗️ BUILDING COST FOR ${cell.name.toUpperCase()}</div>
+        <div style="font-size:20px;font-weight:900;color:#fff">Rs. ${buildCost.toLocaleString()}</div>
+        <div style="font-size:10px;color:#fff;opacity:0.8;margin-top:4px">Per House (🏠) or Hotel (🏨)</div>
+      </div>
+      <div style="background:#fff3e0;border:1px solid #ffcc80;border-radius:6px;padding:8px;font-size:10px;color:#e65100;text-align:center;margin-bottom:14px;line-height:1.5">
+        <b>Building Rules:</b> Own ALL cities in color group!<br>
+        Max 3 houses (🏠) OR 1 hotel (🏨) per city — NOT both!
+      </div>
+      <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:10px;display:flex;justify-content:space-between;font-size:13px;color:#2e7d32;margin-bottom:14px">
+        <span>Bank Mortgage Value</span><span style="font-weight:700">Rs. ${mortgageValue.toLocaleString()}</span>
+      </div>
+      ${owner ? `<div style="background:#e3f2fd;border:1px solid #90caf9;border-radius:6px;padding:10px;text-align:center;font-size:12px;color:#1565c0">
+        Owner: <b style="color:${owner.color||'#1976d2'}">${owner.name}</b>
+        ${buildingsStatus ? ` | ${buildingsStatus}` : ''}
+        ${cell.mtg?` | <span style="color:#c62828">🔒 Mortgaged</span>`:''}
+      </div>` : `<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:10px;text-align:center;font-size:12px;color:#2e7d32">
+        <b>✅ Available for Purchase</b>
+      </div>`}
+    `;
+  } else if (cell.t === 'util') {
+    // Utility card
+    const mortgageValue = Math.floor(cell.price * 0.5);
+    bodyHtml = `
+      <div style="background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px;padding:16px;margin-bottom:14px;text-align:center">
+        <div style="font-size:40px;margin-bottom:8px">${cell.tag || '🏢'}</div>
+        <div style="font-size:14px;color:#222;font-weight:700">Rent: Rs. ${cell.rent[0].toLocaleString()}</div>
+        <div style="font-size:11px;color:#666">(50% of purchase price)</div>
+      </div>
+      <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:10px;display:flex;justify-content:space-between;font-size:13px;color:#2e7d32;margin-bottom:14px">
+        <span>Bank Mortgage Value</span><span style="font-weight:700">Rs. ${mortgageValue.toLocaleString()}</span>
+      </div>
+      ${owner ? `<div style="background:#e3f2fd;border:1px solid #90caf9;border-radius:6px;padding:10px;text-align:center;font-size:12px;color:#1565c0">
+        Owner: <b style="color:${owner.color||'#1976d2'}">${owner.name}</b>
+        ${cell.mtg?` | <span style="color:#c62828">🔒 Mortgaged</span>`:''}
+      </div>` : `<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:10px;text-align:center;font-size:12px;color:#2e7d32">
+        <b>✅ Available for Purchase</b>
+      </div>`}
+    `;
+  }
+  
+  document.getElementById('buyBody').innerHTML = bodyHtml;
+  document.getElementById('buyBtns').innerHTML = '<button class="btn" onclick="closeM(\'mBuy\')" style="width:100%;background:#333;color:#fff;padding:12px;border-radius:6px;font-size:14px">Close</button>';
+  openM('mBuy');
+}
+
+function openManage(state) {
+  const me = state.players.find(p=>p.id===userId);
+  if (!me) return;
+  const build = document.getElementById('mBuild');
+  const mort = document.getElementById('mMortgage');
+  const unmort = document.getElementById('mUnmortgage');
+  build.innerHTML = mort.innerHTML = unmort.innerHTML = '';
+
+  // Color groups for checking ownership
+  const GROUPS = {
+    orange: [1, 3, 4], green: [10, 11, 13], red: [14, 15, 17],
+    lblue: [19, 20, 22], brown: [23, 25, 26], pink: [28, 30, 31], yellow: [32, 33, 35]
+  };
+  
+  // Check if player owns full color group
+  function ownsFullGroup(group) {
+    const members = GROUPS[group] || [];
+    return members.length > 0 && members.every(id => state.cells[id].owner === me.id);
+  }
+
+  me.props.forEach(id => {
+    const c = state.cells[id];
+    if (!c) return;
+    
+    // Building section - only for properties, not mortgaged, and owns full color group
+    if (c.t==='prop' && !c.mtg) {
+      const cost = Math.floor(c.price*0.5);
+      const ownsGroup = ownsFullGroup(c.g);
+      
+      // Show current buildings status
+      const housesStr = c.hc > 0 ? `🏠×${c.hc}` : '';
+      const hotelStr = c.hotel > 0 ? '🏨' : '';
+      const buildingsStatus = housesStr || hotelStr ? `${housesStr}${hotelStr}` : 'No buildings';
+      
+      if (ownsGroup) {
+        // Can build - show separate buttons for house and hotel (mutually exclusive)
+        let buildBtns = '';
+        // Can only build houses if no hotel exists
+        if (c.hotel < 1 && c.hc < 3) {
+          buildBtns += `<button class="btn" style="padding:2px 6px;font-size:10px;width:auto;background:#c62828;color:white;border-color:#c62828" onclick="socket.emit('buildHouse',${c.id});closeM('mMng')">🏠 +House Rs.${cost}</button>`;
+        }
+        // Can only build hotel if no houses exist
+        if (c.hc < 1 && c.hotel < 1) {
+          buildBtns += `<button class="btn" style="padding:2px 6px;font-size:10px;width:auto;background:#212121;color:white;border-color:#212121;margin-left:4px" onclick="socket.emit('buildHotel',${c.id});closeM('mMng')">🏨 +Hotel Rs.${cost}</button>`;
+        }
+        if ((c.hc >= 3) || (c.hotel >= 1)) {
+          buildBtns = '<span style="font-size:10px;color:#27ae60">MAX BUILT!</span>';
+        }
+        build.innerHTML += `<div class="pr" style="flex-direction:column;align-items:flex-start;gap:4px">
+          <span style="font-size:12px">[${c.id}] ${c.name} <span style="color:#888">(${buildingsStatus})</span></span>
+          <div style="display:flex;gap:4px;flex-wrap:wrap">${buildBtns}</div>
+        </div>`;
+      } else {
+        // Doesn't own full group - show disabled message
+        build.innerHTML += `<div class="pr" style="opacity:0.6">
+          <span>[${c.id}] ${c.name}</span>
+          <span style="font-size:9px;color:#f39c12">⚠️ Need all ${c.g.toUpperCase()} cities</span>
+        </div>`;
+      }
+    }
+    
+    // Mortgage section
+    if (!c.mtg) {
+      const v = Math.floor(c.price*0.5);
+      const housesStr = c.hc > 0 ? ` 🏠×${c.hc}` : '';
+      const hotelStr = c.hotel > 0 ? ' 🏨' : '';
+      mort.innerHTML += `<div class="pr"><span>[${c.id}] ${c.name}${housesStr}${hotelStr}</span>
+        <button class="btn w" style="padding:2px 8px;font-size:10px;width:auto" onclick="socket.emit('mortgage',${c.id});closeM('mMng')">+Rs.${v}</button></div>`;
+    } else {
+      const cost = Math.floor(c.price*0.6);
+      unmort.innerHTML += `<div class="pr"><span>[${c.id}] ${c.name} 🔒</span>
+        <button class="btn p" style="padding:2px 8px;font-size:10px;width:auto" onclick="socket.emit('unmortgage',${c.id});closeM('mMng')">-Rs.${cost}</button></div>`;
+    }
+  });
+  if (!build.innerHTML) build.innerHTML = '<p style="color:#666;font-size:12px;padding:8px">No properties available to build on.<br><span style="font-size:10px">Tip: Own ALL cities in a color group to build!</span></p>';
+  if (!mort.innerHTML) mort.innerHTML = '<p style="color:#666;font-size:12px;padding:8px">No properties to mortgage.</p>';
+  if (!unmort.innerHTML) unmort.innerHTML = '<p style="color:#666;font-size:12px;padding:8px">No mortgaged properties.</p>';
+  openM('mMng');
+}
+
+function openLoan(state) {
+  const me = state.players.find(p=>p.id===userId);
+  if (!me) return;
+  
+  const hasLoan = me.loan > 0;
+  const loanAlreadyUsed = me.loanTaken && !hasLoan; // Used their one-time loan and repaid it
+  const totalDue = me.loan; // No interest
+  
+  document.getElementById('loanInfo').innerHTML = `
+    <div style="font-size:16px;margin-bottom:8px">💰 Balance: <b style="color:#27ae60">Rs.${me.money.toLocaleString()}</b></div>
+    ${hasLoan ? `
+      <div style="background:#fff3e0;color:#e65100;padding:10px;border-radius:8px;margin-top:8px">
+        <b>Active Loan:</b> Rs.${me.loan.toLocaleString()}<br>
+        <b>Total Due:</b> Rs.${totalDue.toLocaleString()} (No interest!)
+      </div>
+    ` : loanAlreadyUsed ? `
+      <div style="background:#ffebee;color:#c62828;padding:10px;border-radius:8px;margin-top:8px">
+        <b>⚠️ ONE-TIME LOAN USED</b><br>
+        You can only take ONE loan per game and you have already used it!
+      </div>
+    ` : `
+      <div style="background:#e8f5e9;color:#2e7d32;padding:10px;border-radius:8px;margin-top:8px">
+        <b>⚠️ ONE-TIME LOAN AVAILABLE</b><br>
+        You can only take ONE loan per game! Max: Rs.20,000 (No interest!)
+      </div>
+    `}
+  `;
+  
+  // Show/hide sections based on loan status
+  const canTakeLoan = !hasLoan && !loanAlreadyUsed;
+  document.getElementById('takeLoanSection').style.display = canTakeLoan ? 'block' : 'none';
+  document.getElementById('repayLoanSection').style.display = hasLoan ? 'block' : 'none';
+  
+  if (hasLoan) {
+    document.getElementById('repayAmt').value = Math.min(totalDue, me.money);
+    document.getElementById('repayAmt').max = totalDue;
+  }
+  
+  openM('mLoan');
+}
+
+function takeLoan() {
+  const amount = parseInt(document.getElementById('lamt').value) || 0;
+  if (amount < 100) {
+    showWarning('Minimum loan amount is Rs.100');
+    return;
+  }
+  if (amount > 20000) {
+    showWarning('Maximum loan amount is Rs.20,000');
+    return;
+  }
+  socket.emit('takeLoan', amount);
+  closeM('mLoan');
+}
+
+function repayLoan() {
+  const amount = parseInt(document.getElementById('repayAmt').value) || 0;
+  if (amount < 100) {
+    showWarning('Minimum repayment is Rs.100');
+    return;
+  }
+  socket.emit('repayLoan', amount);
+  closeM('mLoan');
+}
+
+function repayFullLoan() {
+  const me = gs?.players.find(p=>p.id===userId);
+  if (!me || me.loan <= 0) return;
+  const totalDue = me.loan; // No interest
+  socket.emit('repayLoan', totalDue);
+  closeM('mLoan');
+}
+
+function showWarning(message) {
+  document.getElementById('warningText').textContent = message;
+  openM('mWarning');
+}
+
+function openNetWorth() {
+  if (!gs) return;
+  
+  const GRP_COLORS = {brown:'#795548',lblue:'#29b6f6',pink:'#f06292',orange:'#ff7043',red:'#ef5350',yellow:'#fdd835',green:'#66bb6a',dblue:'#1565c0'};
+  
+  // Calculate stats for each player
+  const playerStats = gs.players.filter(p => !p.bk).map(p => {
+    const ownedProps = gs.cells.filter(c => c.owner === p.id && !c.mtg);
+    const mortgagedProps = gs.cells.filter(c => c.owner === p.id && c.mtg);
+    
+    const propertyValue = ownedProps.reduce((sum, c) => sum + (c.price || 0), 0);
+    const mortgagedValue = mortgagedProps.reduce((sum, c) => sum + (c.price || 0), 0);
+    const totalHouses = ownedProps.reduce((sum, c) => sum + (c.hc || 0), 0);
+    const houseValue = ownedProps.reduce((sum, c) => sum + ((c.hc || 0) * Math.floor((c.price || 0) * 0.5)), 0);
+    const totalHotels = ownedProps.reduce((sum, c) => sum + (c.hotel || 0), 0);
+    const hotelValue = ownedProps.reduce((sum, c) => sum + ((c.hotel || 0) * Math.floor((c.price || 0) * 0.5)), 0);
+    const buildingsValue = houseValue + hotelValue;
+    
+    // Current cash (minus loans)
+    const currentCash = p.money - (p.loan || 0);
+    const netWorth = propertyValue + buildingsValue + currentCash;
+    
+    return {
+      player: p,
+      ownedProps,
+      mortgagedProps,
+      totalProperties: ownedProps.length,
+      propertyValue,
+      mortgagedValue,
+      totalHouses,
+      houseValue,
+      totalHotels,
+      hotelValue,
+      buildingsValue,
+      rawCash: p.money,
+      loan: p.loan || 0,
+      currentCash,
+      netWorth
+    };
+  });
+  
+  // Sort by net worth (highest first) - SIMPLE LOGIC
+  playerStats.sort((a, b) => b.netWorth - a.netWorth);
+  
+  const content = document.getElementById('netWorthContent');
+  
+  // Check if top players are tied in net worth
+  const topNetWorth = playerStats[0]?.netWorth || 0;
+  const tiedForFirst = playerStats.filter(p => p.netWorth === topNetWorth);
+  
+  let html = '';
+  
+  if (tiedForFirst.length > 1) {
+    // Multiple players tied for first place
+    html += `
+      <div style="background:linear-gradient(135deg,#ff9800,#f57c00);border-radius:12px;padding:16px;margin-bottom:16px;text-align:center">
+        <div style="font-size:32px">🤝</div>
+        <div style="font-size:18px;font-weight:900;color:#000">TIE FOR FIRST!</div>
+        <div style="font-size:14px;color:#333">${tiedForFirst.map(p => p.player.name).join(' & ')}</div>
+        <div style="font-size:24px;font-weight:900;color:#000;margin-top:8px">Rs.${topNetWorth.toLocaleString()}</div>
+      </div>
+    `;
+  } else if (playerStats.length > 0) {
+    // Clear richest player (highest net worth)
+    const richest = playerStats[0];
+    html += `
+      <div style="background:linear-gradient(135deg,#f9a825,#ff8f00);border-radius:12px;padding:16px;margin-bottom:16px;text-align:center">
+        <div style="font-size:32px">👑</div>
+        <div style="font-size:18px;font-weight:900;color:#000">${richest.player.name}</div>
+        <div style="font-size:14px;color:#333">RICHEST PLAYER</div>
+        <div style="font-size:28px;font-weight:900;color:#000;margin-top:8px">Rs.${richest.netWorth.toLocaleString()}</div>
+      </div>
+    `;
+  }
+  
+  // Each player's breakdown
+  playerStats.forEach((pw, index) => {
+    const isRichest = index === 0 && tiedForFirst.length === 1;
+    
+    // Pawn SVG
+    const pawnSvg = `<svg viewBox="0 0 30 50" width="36" height="48" style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4))">
+      <defs><linearGradient id="pawnGrad${index}" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:${pw.player.color};stop-opacity:1"/>
+        <stop offset="100%" style="stop-color:${pw.player.color};stop-opacity:0.7"/>
+      </linearGradient></defs>
+      <ellipse cx="15" cy="8" rx="7" ry="7" fill="url(#pawnGrad${index})" stroke="#fff" stroke-width="1"/>
+      <path d="M8 15 Q5 25 4 45 L26 45 Q25 25 22 15 Z" fill="url(#pawnGrad${index})" stroke="#fff" stroke-width="1"/>
+    </svg>`;
+    
+    html += `
+      <div style="background:${isRichest ? 'rgba(249,168,37,0.2)' : '#2a2a2a'};border:2px solid ${isRichest ? '#f9a825' : '#444'};border-radius:12px;padding:14px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <div style="font-size:20px;font-weight:900;color:${index === 0 ? '#ffd700' : index === 1 ? '#c0c0c0' : index === 2 ? '#cd7f32' : '#666'}">#${index + 1}</div>
+          ${pawnSvg}
+          <div>
+            <div style="font-size:16px;font-weight:700;color:${pw.player.color}">${pw.player.name} ${isRichest ? '👑' : ''}</div>
+            <div style="font-size:14px;color:#27ae60;font-weight:600">💰 Current Cash: Rs.${pw.currentCash.toLocaleString()}</div>
+          </div>
+        </div>
+        
+        <div style="font-size:12px;color:#aaa;border-top:1px solid #444;padding-top:10px">
+          <div style="display:flex;justify-content:space-between;padding:4px 0">
+            <span>🏠 Properties (${pw.totalProperties})</span>
+            <span style="color:#4dd0e1">Rs.${pw.propertyValue.toLocaleString()}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0">
+            <span style="color:#c62828">🏠 Houses (${pw.totalHouses})</span>
+            <span style="color:#4dd0e1">Rs.${pw.houseValue.toLocaleString()}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0">
+            <span style="color:#fff">🏨 Hotels (${pw.totalHotels})</span>
+            <span style="color:#4dd0e1">Rs.${pw.hotelValue.toLocaleString()}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0">
+            <span>💰 Raw Cash</span>
+            <span style="color:#27ae60">Rs.${pw.rawCash.toLocaleString()}</span>
+          </div>
+          ${pw.loan > 0 ? `
+          <div style="display:flex;justify-content:space-between;padding:4px 0">
+            <span>🏦 Loan</span>
+            <span style="color:#e74c3c">-Rs.${pw.loan.toLocaleString()}</span>
+          </div>
+          ` : ''}
+          ${pw.mortgagedProps.length > 0 ? `
+          <div style="display:flex;justify-content:space-between;padding:4px 0;color:#888">
+            <span>🔒 Mortgaged (${pw.mortgagedProps.length})</span>
+            <span>(Rs.${pw.mortgagedValue.toLocaleString()} not counted)</span>
+          </div>
+          ` : ''}
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px dashed #555;margin-top:4px;font-weight:bold">
+            <span style="color:#ffd700">💎 Net Worth</span>
+            <span style="color:#ffd700;font-size:14px">Rs.${pw.netWorth.toLocaleString()}</span>
+          </div>
+        </div>
+        
+        ${pw.ownedProps.length > 0 ? `
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid #333">
+          <div style="font-size:10px;color:#666;margin-bottom:6px">PROPERTIES:</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px">
+            ${pw.ownedProps.map(c => {
+              const housesStr = c.hc > 0 ? ` 🏠×${c.hc}` : '';
+              const hotelStr = c.hotel > 0 ? ' 🏨' : '';
+              return `<span style="background:${GRP_COLORS[c.g] || '#555'};padding:2px 6px;border-radius:4px;font-size:10px;color:#fff">
+                ${c.name}${housesStr}${hotelStr}
+              </span>`;
+            }).join('')}
+          </div>
+        </div>
+        ` : ''}
+      </div>
+    `;
+  });
+  
+  // Bankrupt players
+  const bankruptPlayers = gs.players.filter(p => p.bk);
+  if (bankruptPlayers.length > 0) {
+    html += `
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid #333">
+        <div style="font-size:12px;color:#666;margin-bottom:8px">💥 BANKRUPT:</div>
+        ${bankruptPlayers.map(p => `
+          <span style="background:#333;padding:4px 8px;border-radius:4px;font-size:12px;color:#888;margin-right:4px">${p.name}</span>
+        `).join('')}
+      </div>
+    `;
+  }
+  
+  content.innerHTML = html;
+  openM('mNetWorth');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PLAYER DETAILS MODAL
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function openPlayerDetails(playerId) {
+  if (!gs) return;
+  
+  const player = gs.players.find(p => p.id === playerId);
+  if (!player) return;
+  
+  const GRP_COLORS = {brown:'#795548',lblue:'#29b6f6',pink:'#f06292',orange:'#ff7043',red:'#ef5350',yellow:'#fdd835',green:'#66bb6a',dblue:'#1565c0'};
+  
+  // Get player's properties
+  const ownedProps = gs.cells.filter(c => c.owner === player.id && !c.mtg);
+  const mortgagedProps = gs.cells.filter(c => c.owner === player.id && c.mtg);
+  const propsWithHouses = ownedProps.filter(c => c.hc > 0);
+  const propsWithHotels = ownedProps.filter(c => c.hotel > 0);
+  
+  // Calculate values
+  const propertyValue = ownedProps.reduce((sum, c) => sum + (c.price || 0), 0);
+  const totalHouses = ownedProps.reduce((sum, c) => sum + (c.hc || 0), 0);
+  const totalHotels = ownedProps.reduce((sum, c) => sum + (c.hotel || 0), 0);
+  
+  const pawnSvg = createPawnSvg(player.color, 50);
+  const nameColor = (player.color === '#ffffff' || player.color === '#fff') ? '#e91e8c' : player.color;
+  
+  // Update title
+  document.getElementById('playerDetailsTitle').innerHTML = `${pawnSvg} <span style="color:${nameColor};margin-left:10px">${player.name}</span>`;
+  
+  let html = '';
+  
+  // Player Status
+  html += `
+    <div style="background:#2a2a2a;border-radius:10px;padding:16px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-size:14px;color:#aaa">💰 Cash Balance</span>
+        <span style="font-size:20px;font-weight:700;color:#27ae60">Rs.${player.money.toLocaleString()}</span>
+      </div>
+      ${player.loan > 0 ? `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <span style="font-size:14px;color:#aaa">🏦 Loan</span>
+        <span style="font-size:16px;font-weight:700;color:#e74c3c">Rs.${player.loan.toLocaleString()}</span>
+      </div>
+      ` : ''}
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:14px;color:#aaa">📍 Current Position</span>
+        <span style="font-size:14px;color:#4dd0e1">[${player.pos}] ${gs.cells[player.pos]?.name || 'Unknown'}</span>
+      </div>
+      ${player.jailed ? `
+      <div style="background:#ffcdd2;color:#b71c1c;padding:8px;border-radius:6px;margin-top:12px;text-align:center;font-size:12px">
+        🔒 IN PRISON (Attempt ${player.jailTurns}/3)
+      </div>
+      ` : ''}
+      ${player.bk ? `
+      <div style="background:#333;color:#888;padding:8px;border-radius:6px;margin-top:12px;text-align:center;font-size:12px">
+        💥 BANKRUPT
+      </div>
+      ` : ''}
+    </div>
+  `;
+  
+  // Properties Summary
+  html += `
+    <div style="background:#1a1a2e;border-radius:10px;padding:16px;margin-bottom:16px">
+      <div style="font-size:14px;font-weight:700;color:#e91e8c;margin-bottom:12px">🏠 HOLDINGS SUMMARY</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="background:#2a2a2a;padding:10px;border-radius:8px;text-align:center">
+          <div style="font-size:24px;font-weight:900;color:#4dd0e1">${ownedProps.length}</div>
+          <div style="font-size:11px;color:#888">Properties</div>
+        </div>
+        <div style="background:#2a2a2a;padding:10px;border-radius:8px;text-align:center">
+          <div style="font-size:24px;font-weight:900;color:#c62828">${totalHouses}</div>
+          <div style="font-size:11px;color:#888">Houses 🏠</div>
+        </div>
+        <div style="background:#2a2a2a;padding:10px;border-radius:8px;text-align:center">
+          <div style="font-size:24px;font-weight:900;color:#fff">${totalHotels}</div>
+          <div style="font-size:11px;color:#888">Hotels 🏨</div>
+        </div>
+        <div style="background:#2a2a2a;padding:10px;border-radius:8px;text-align:center">
+          <div style="font-size:24px;font-weight:900;color:#f39c12">${mortgagedProps.length}</div>
+          <div style="font-size:11px;color:#888">Mortgaged 🔒</div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Properties with Buildings
+  if (propsWithHouses.length > 0 || propsWithHotels.length > 0) {
+    html += `
+      <div style="background:#2a2a2a;border-radius:10px;padding:16px;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:700;color:#27ae60;margin-bottom:12px">🏗️ CITIES WITH BUILDINGS</div>
+    `;
+    
+    [...propsWithHouses, ...propsWithHotels].filter((c, i, arr) => arr.findIndex(x => x.id === c.id) === i).forEach(c => {
+      const housesStr = c.hc > 0 ? `<span style="color:#c62828">🏠 ×${c.hc}</span>` : '';
+      const hotelStr = c.hotel > 0 ? `<span style="color:#fff">🏨 ×${c.hotel}</span>` : '';
+      html += `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid #333">
+          <span style="display:flex;align-items:center;gap:8px">
+            <span style="width:12px;height:12px;border-radius:2px;background:${GRP_COLORS[c.g] || '#666'}"></span>
+            <span style="color:#fff">${c.name}</span>
+          </span>
+          <span>${housesStr} ${hotelStr}</span>
+        </div>
+      `;
+    });
+    
+    html += `</div>`;
+  }
+  
+  // All Properties Owned
+  if (ownedProps.length > 0) {
+    html += `
+      <div style="background:#2a2a2a;border-radius:10px;padding:16px;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:700;color:#4dd0e1;margin-bottom:12px">🏘️ ALL PROPERTIES OWNED</div>
+    `;
+    
+    ownedProps.forEach(c => {
+      const buildCost = Math.floor(c.price * 0.5);
+      const housesStr = c.hc > 0 ? `<span style="color:#c62828"> 🏠×${c.hc}</span>` : '';
+      const hotelStr = c.hotel > 0 ? `<span style="color:#fff"> 🏨</span>` : '';
+      html += `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid #333">
+          <span style="display:flex;align-items:center;gap:8px">
+            <span style="width:12px;height:12px;border-radius:2px;background:${GRP_COLORS[c.g] || '#666'}"></span>
+            <span style="color:#fff">[${c.id}] ${c.name}${housesStr}${hotelStr}</span>
+          </span>
+          <span style="color:#27ae60;font-size:12px">Rs.${c.price.toLocaleString()}</span>
+        </div>
+      `;
+    });
+    
+    html += `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 8px 0;margin-top:8px;border-top:1px dashed #444">
+          <span style="color:#aaa;font-size:12px">Total Property Value</span>
+          <span style="color:#27ae60;font-weight:700">Rs.${propertyValue.toLocaleString()}</span>
+        </div>
+      </div>
+    `;
+  } else {
+    html += `
+      <div style="background:#2a2a2a;border-radius:10px;padding:20px;margin-bottom:16px;text-align:center">
+        <div style="font-size:14px;color:#666">No properties owned yet</div>
+      </div>
+    `;
+  }
+  
+  // Mortgaged Properties
+  if (mortgagedProps.length > 0) {
+    html += `
+      <div style="background:#3a2a2a;border:1px solid #c62828;border-radius:10px;padding:16px;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:700;color:#e74c3c;margin-bottom:12px">🔒 MORTGAGED PROPERTIES</div>
+    `;
+    
+    mortgagedProps.forEach(c => {
+      const unmortgageCost = Math.floor(c.price * 0.6);
+      html += `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid #4a3a3a">
+          <span style="display:flex;align-items:center;gap:8px">
+            <span style="width:12px;height:12px;border-radius:2px;background:${GRP_COLORS[c.g] || '#666'};opacity:0.5"></span>
+            <span style="color:#888">[${c.id}] ${c.name}</span>
+          </span>
+          <span style="color:#e74c3c;font-size:11px">Unmortgage: Rs.${unmortgageCost.toLocaleString()}</span>
+        </div>
+      `;
+    });
+    
+    html += `</div>`;
+  }
+  
+  document.getElementById('playerDetailsContent').innerHTML = html;
+  openM('mPlayerDetails');
+}
+
+// Debt payment functions
+function openManageForDebt() {
+  if (!gs) return;
+  closeM('mClubDebt');
+  closeM('mRestDebt');
+  closeM('mRentDebt');
+  openManage(gs);
+}
+
+function openLoanForDebt() {
+  if (!gs) return;
+  closeM('mClubDebt');
+  closeM('mRestDebt');
+  closeM('mRentDebt');
+  openLoan(gs);
+}
+
+function payClubDebt() {
+  socket.emit('payClubDebt');
+  closeM('mClubDebt');
+  playSound('pay');
+}
+
+function payRestHouseDebt() {
+  socket.emit('payRestHouseDebt');
+  closeM('mRestDebt');
+  playSound('pay');
+}
+
+function payRentDebt() {
+  socket.emit('payRentDebt');
+  closeM('mRentDebt');
+  playSound('pay');
+}
+
+function checkAndShowDebtModals(state) {
+  const me = state.players.find(p => p.id === userId);
+  if (!me) return;
+  
+  // Check for club debt
+  if (state.clubDebt && state.clubDebt.playerId === userId) {
+    document.getElementById('clubDebtInfo').innerHTML = `
+      <div style="font-size:24px;color:#c0392b;font-weight:700">You owe Rs.${state.clubDebt.totalAmount}</div>
+      <div style="margin-top:8px">Your balance: <b style="color:${me.money >= state.clubDebt.totalAmount ? '#27ae60' : '#c0392b'}">Rs.${me.money}</b></div>
+      ${me.money < state.clubDebt.totalAmount ? '<div style="color:#e65100;margin-top:5px">⚠️ Not enough! Mortgage or take loan first.</div>' : '<div style="color:#27ae60;margin-top:5px">✅ You can pay now!</div>'}
+    `;
+    document.getElementById('payClubDebtBtn').disabled = me.money < state.clubDebt.totalAmount;
+    openM('mClubDebt');
+  }
+  
+  // Check for rent debt
+  if (state.rentDebt && state.rentDebt.playerId === userId) {
+    const owner = state.players.find(p => p.id === state.rentDebt.ownerId);
+    document.getElementById('rentDebtInfo').innerHTML = `
+      <div style="font-size:20px;color:#c0392b;font-weight:700">You owe Rs.${state.rentDebt.amount}</div>
+      <div style="margin-top:6px;font-size:14px">Property: <b>${state.rentDebt.cellName}</b></div>
+      <div style="margin-top:4px;font-size:14px">Owner: <b>${owner?.name || 'Owner'}</b></div>
+      <div style="margin-top:8px">Your balance: <b style="color:${me.money >= state.rentDebt.amount ? '#27ae60' : '#c0392b'}">Rs.${me.money}</b></div>
+      ${me.money < state.rentDebt.amount ? '<div style="color:#e65100;margin-top:5px">⚠️ Not enough! Mortgage or take loan first.</div>' : '<div style="color:#27ae60;margin-top:5px">✅ You can pay now!</div>'}
+    `;
+    document.getElementById('payRentDebtBtn').disabled = me.money < state.rentDebt.amount;
+    openM('mRentDebt');
+  }
+  
+  // Check for rest house debt (owed by me to someone else)
+  if (state.restHouseDebts) {
+    const myDebt = state.restHouseDebts.find(d => d.debtorId === userId);
+    if (myDebt) {
+      const creditor = state.players.find(p => p.id === myDebt.creditorId);
+      document.getElementById('restDebtInfo').innerHTML = `
+        <div style="font-size:18px;color:#c0392b;font-weight:700">You owe Rs.${myDebt.amount} to ${creditor?.name || 'another player'}</div>
+        <div style="margin-top:8px">Your balance: <b style="color:${me.money >= myDebt.amount ? '#27ae60' : '#c0392b'}">Rs.${me.money}</b></div>
+        ${me.money < myDebt.amount ? '<div style="color:#e65100;margin-top:5px">⚠️ Not enough! Mortgage or take loan first.</div>' : '<div style="color:#27ae60;margin-top:5px">✅ You can pay now!</div>'}
+      `;
+      document.getElementById('payRestDebtBtn').disabled = me.money < myDebt.amount;
+      openM('mRestDebt');
+    }
+  }
+}
+
+function openTrade(state) {
+  const me = state.players.find(p=>p.id===userId);
+  if (!me) return;
+  const others = state.players.filter(p=>!p.bk && p.id!==userId);
+  const tTarget = document.getElementById('tTarget');
+  tTarget.innerHTML = '';
+  others.forEach(o => { tTarget.innerHTML += `<option value="${o.id}">${o.tok} ${o.name} (Rs.${o.money})</option>`; });
+  const tGive = document.getElementById('tGive');
+  tGive.innerHTML = '<option value="">None</option>';
+  me.props.forEach(id => {
+    const c = state.cells[id];
+    if (c) tGive.innerHTML += `<option value="${id}">[${c.id}] ${c.name} (Rs.${c.price})</option>`;
+  });
+  refreshTradeGet();
+  openM('mTrade');
+}
+function refreshTradeGet() {
+  if (!gs) return;
+  const tid = document.getElementById('tTarget').value;
+  const target = gs.players.find(p=>p.id===tid);
+  const tGet = document.getElementById('tGet');
+  tGet.innerHTML = '<option value="">None</option>';
+  if (!target) return;
+  target.props.forEach(id => {
+    const c = gs.cells[id];
+    if (c) tGet.innerHTML += `<option value="${id}">[${c.id}] ${c.name} (Rs.${c.price})</option>`;
+  });
+}
+function doTrade() {
+  const targetId = document.getElementById('tTarget').value;
+  const giveCell = document.getElementById('tGive').value;
+  const giveCash = parseInt(document.getElementById('tGiveCash').value)||0;
+  const getCell = document.getElementById('tGet').value;
+  const getCash = parseInt(document.getElementById('tGetCash').value)||0;
+  
+  // Validate: must offer something
+  if (giveCell === '' && giveCash <= 0) {
+    alert('You must offer something! Add cash or select a property to give.');
+    return;
+  }
+  
+  // Validate: cannot give more cash than you have
+  const me = gs.players.find(p => p.id === userId);
+  if (me && giveCash > me.money) {
+    alert('You cannot offer more cash than you have! Your balance: Rs.' + me.money.toLocaleString());
+    return;
+  }
+  
+  // Validate: cannot request more cash than target has
+  const target = gs.players.find(p => p.id === targetId);
+  if (target && getCash > target.money) {
+    alert('You cannot request more cash than ' + target.name + ' has! Their balance: Rs.' + target.money.toLocaleString());
+    return;
+  }
+  
+  socket.emit('proposeTrade', {
+    targetId,
+    giveCell: giveCell !== '' ? parseInt(giveCell) : null,
+    giveCash,
+    getCell: getCell !== '' ? parseInt(getCell) : null,
+    getCash,
+  });
+  closeM('mTrade');
+}
+
+function showEnd(state) {
+  const winner = state.players.find(p=>p.id===state.winner);
+  const content = document.getElementById('endContent');
+  content.innerHTML = winner
+    ? `<div style="font-size:40px">${winner.tok}</div>
+       <div style="color:#e91e8c;font-size:20px;font-weight:900;margin:8px 0">${winner.name} WINS!</div>
+       <div style="color:#aaa">Final Balance: Rs.${winner.money.toLocaleString()}</div>`
+    : 'Game Over!';
+  openM('mEnd');
+}
+
+function openLogModal() {
+  if (!gs) return;
+  const fullLog = document.getElementById('fullLog');
+  fullLog.innerHTML = (gs.log||[]).map(l=>`<div style="padding:6px 0;border-bottom:1px solid #333">${l}</div>`).join('');
+  openM('mLog');
+}
+
+function showCityDetails(cellId) {
+  if (!gs) return;
+  const cell = gs.cells[cellId];
+  if (!cell) return;
+  
+  const colorBar = document.getElementById('cityColorBar');
+  const title = document.getElementById('cityTitle');
+  const price = document.getElementById('cityPrice');
+  const body = document.getElementById('cityBody');
+  
+  // Set color bar
+  if (cell.g && GRP_COLOR[cell.g]) {
+    colorBar.style.background = GRP_COLOR[cell.g];
+  } else if (cell.t === 'util') {
+    colorBar.style.background = '#5c6bc0';
+  } else {
+    colorBar.style.background = '#666';
+  }
+  
+  title.textContent = cell.name;
+  price.textContent = `Rs. ${cell.price.toLocaleString()}`;
+  
+  // Find owner
+  const owner = cell.owner ? gs.players.find(p => p.id === cell.owner) : null;
+  
+  if (cell.t === 'prop') {
+    const buildCost = Math.floor(cell.price * 0.5);
+    const mortgageValue = Math.floor(cell.price * 0.5);
+    
+    // Current buildings display
+    const housesDisplay = cell.hc > 0 ? `<span style="color:#c62828">🏠×${cell.hc}</span>` : '';
+    const hotelDisplay = cell.hotel > 0 ? `<span style="color:#fff">🏨</span>` : '';
+    const buildingsStatus = housesDisplay || hotelDisplay ? `${housesDisplay} ${hotelDisplay}`.trim() : 'None';
+    
+    body.innerHTML = `
+      <div style="background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px;padding:14px;margin-bottom:14px">
+        <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:10px;text-align:center">💵 Rent Schedule</div>
+        <table style="width:100%;font-size:13px;border-collapse:collapse">
+          <tr><td style="padding:4px 0;color:#555">Base Rent</td><td style="text-align:right;font-weight:600">Rs. ${cell.rent[0].toLocaleString()}</td></tr>
+          <tr><td style="padding:4px 0;color:#555">With Color Set (no buildings)</td><td style="text-align:right;font-weight:600">Rs. ${(cell.rent[0]*2).toLocaleString()}</td></tr>
+          <tr style="border-top:1px dashed #ccc"><td style="padding:4px 0;color:#c62828">🏠 1 House</td><td style="text-align:right;font-weight:600">Rs. ${cell.rent[1].toLocaleString()}</td></tr>
+          <tr><td style="padding:4px 0;color:#c62828">🏠🏠 2 Houses</td><td style="text-align:right;font-weight:600">Rs. ${cell.rent[2].toLocaleString()}</td></tr>
+          <tr><td style="padding:4px 0;color:#c62828">🏠🏠🏠 3 Houses</td><td style="text-align:right;font-weight:600">Rs. ${cell.rent[3].toLocaleString()}</td></tr>
+          <tr style="border-top:1px dashed #ccc"><td style="padding:4px 0;color:#212121;font-weight:bold">🏨 With Hotel</td><td style="text-align:right;font-weight:600;color:#1565c0">Rs. ${cell.rent[4].toLocaleString()}</td></tr>
+        </table>
+      </div>
+      <div style="background:linear-gradient(135deg,#c62828,#8e0000);border-radius:8px;padding:12px;margin-bottom:10px;display:flex;justify-content:space-around;text-align:center">
+        <div>
+          <div style="font-size:24px">🏠</div>
+          <div style="font-size:11px;color:#ffcdd2;margin-top:2px">House Cost</div>
+          <div style="font-size:16px;font-weight:900;color:#fff">Rs. ${buildCost.toLocaleString()}</div>
+        </div>
+        <div style="width:1px;background:rgba(255,255,255,0.3)"></div>
+        <div>
+          <div style="font-size:24px">🏨</div>
+          <div style="font-size:11px;color:#ffcdd2;margin-top:2px">Hotel Cost</div>
+          <div style="font-size:16px;font-weight:900;color:#fff">Rs. ${buildCost.toLocaleString()}</div>
+        </div>
+      </div>
+      <div style="background:#fff3e0;border:1px solid #ffcc80;border-radius:6px;padding:10px;margin-bottom:10px">
+        <div style="font-size:12px;color:#e65100;margin-bottom:6px"><b>⚠️ Building Rules:</b></div>
+        <div style="font-size:11px;color:#666">• Must own ALL cities in color group<br>• Max 3 houses (🏠) OR 1 hotel (🏨) — NOT both!</div>
+      </div>
+      <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:10px;display:flex;justify-content:space-between;font-size:14px;color:#2e7d32;margin-bottom:14px">
+        <span>Mortgage Value</span><span style="font-weight:700">Rs. ${mortgageValue.toLocaleString()}</span>
+      </div>
+      ${owner ? `<div style="background:#e3f2fd;border:1px solid #90caf9;border-radius:6px;padding:10px;text-align:center;font-size:13px;color:#1565c0">
+        Owner: <b style="color:${owner.color||'#1976d2'}">${owner.name}</b>
+        ${buildingsStatus !== 'None' ? ` | Buildings: ${buildingsStatus}` : ''}
+        ${cell.mtg?` | <span style="color:#c62828">🔒 Mortgaged</span>`:''}
+      </div>` : `<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:10px;text-align:center;font-size:13px;color:#2e7d32">
+        <b>✅ Available for Purchase</b>
+      </div>`}
+    `;
+  } else if (cell.t === 'util') {
+    const mortgageValue = Math.floor(cell.price * 0.5);
+    body.innerHTML = `
+      <div style="background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px;padding:16px;margin-bottom:14px;text-align:center">
+        <div style="font-size:40px;margin-bottom:8px">${cell.tag || '🏢'}</div>
+        <div style="font-size:16px;color:#222;font-weight:700">Rent: Rs. ${cell.rent[0].toLocaleString()}</div>
+        <div style="font-size:12px;color:#666">(50% of purchase price)</div>
+      </div>
+      <div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:10px;display:flex;justify-content:space-between;font-size:14px;color:#2e7d32;margin-bottom:14px">
+        <span>Mortgage Value</span><span style="font-weight:700">Rs. ${mortgageValue.toLocaleString()}</span>
+      </div>
+      ${owner ? `<div style="background:#e3f2fd;border:1px solid #90caf9;border-radius:6px;padding:10px;text-align:center;font-size:13px;color:#1565c0">
+        Owner: <b style="color:${owner.color||'#1976d2'}">${owner.name}</b>
+        ${cell.mtg?` | <span style="color:#c62828">🔒 Mortgaged</span>`:''}
+      </div>` : `<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:10px;text-align:center;font-size:13px;color:#2e7d32">
+        <b>✅ Available for Purchase</b>
+      </div>`}
+    `;
+  }
+  
+  openM('mCityDetails');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// END GAME LOAN REPAYMENT FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function showEndGameLoanModal(state) {
+  const me = state.players.find(p => p.id === userId);
+  if (!me) return;
+  
+  const totalDue = me.loan; // No interest
+  const canPay = me.money >= totalDue;
+  
+  // Get properties that can be mortgaged
+  const mortgageableProps = state.cells.filter(c => c.owner === me.id && !c.mtg);
+  
+  // Calculate total possible mortgage value
+  let totalMortgageValue = 0;
+  mortgageableProps.forEach(c => {
+    const baseValue = Math.floor(c.price * 0.5);
+    const houseValue = c.hc > 0 ? Math.floor(c.hc * c.price * 0.5 * 0.5) : 0;
+    const hotelValue = c.hotel > 0 ? Math.floor(c.hotel * c.price * 0.5 * 0.5) : 0;
+    totalMortgageValue += baseValue + houseValue + hotelValue;
+  });
+  
+  const infoDiv = document.getElementById('endGameLoanInfo');
+  infoDiv.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="color:#aaa">Your Balance:</span>
+      <span style="font-size:20px;font-weight:700;color:#27ae60">Rs.${me.money.toLocaleString()}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="color:#aaa">Loan Amount:</span>
+      <span style="font-size:16px;color:#f39c12">Rs.${me.loan.toLocaleString()}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid #444">
+      <span style="color:#fff;font-weight:700">Total Due (No interest!):</span>
+      <span style="font-size:22px;font-weight:700;color:#e74c3c">Rs.${totalDue.toLocaleString()}</span>
+    </div>
+    ${canPay ? `
+      <div style="background:#1b5e20;color:#a5d6a7;padding:10px;border-radius:8px;margin-top:12px;text-align:center">
+        ✅ You have enough to repay! Click "Repay Loan" to win.
+      </div>
+    ` : `
+      <div style="background:#b71c1c;color:#ffcdd2;padding:10px;border-radius:8px;margin-top:12px;text-align:center">
+        ⚠️ You need Rs.${(totalDue - me.money).toLocaleString()} more!<br>
+        Mortgage properties below to get funds.
+      </div>
+      <div style="font-size:12px;color:#aaa;margin-top:8px;text-align:center">
+        Available from mortgaging: Rs.${totalMortgageValue.toLocaleString()}
+      </div>
+    `}
+  `;
+  
+  // Show mortgage section only if player cannot pay
+  const mortgageSection = document.getElementById('endGameMortgageSection');
+  const mortgageList = document.getElementById('endGameMortgageList');
+  
+  if (!canPay && mortgageableProps.length > 0) {
+    mortgageSection.style.display = 'block';
+    mortgageList.innerHTML = mortgageableProps.map(c => {
+      const baseValue = Math.floor(c.price * 0.5);
+      const houseValue = c.hc > 0 ? Math.floor(c.hc * c.price * 0.5 * 0.5) : 0;
+      const hotelValue = c.hotel > 0 ? Math.floor(c.hotel * c.price * 0.5 * 0.5) : 0;
+      const totalValue = baseValue + houseValue + hotelValue;
+      
+      // Build description of buildings
+      let buildingsDesc = [];
+      if (c.hc > 0) buildingsDesc.push(`🏠×${c.hc}`);
+      if (c.hotel > 0) buildingsDesc.push('🏨');
+      const buildingsStr = buildingsDesc.length > 0 ? buildingsDesc.join(' ') : 'No buildings';
+      
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;margin:6px 0;background:#2a2a2a;border-radius:8px;border-left:4px solid ${c.g && GRP_COLOR[c.g] ? GRP_COLOR[c.g] : '#666'}">
+          <div>
+            <div style="font-weight:700;color:#fff">[${c.id}] ${c.name}</div>
+            <div style="font-size:12px;color:#aaa">${buildingsStr}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="color:#27ae60;font-weight:700">+Rs.${totalValue.toLocaleString()}</div>
+            <button class="btn" onclick="endGameMortgageProperty(${c.id})" style="padding:4px 12px;font-size:12px;margin-top:4px">Mortgage</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  } else if (!canPay) {
+    mortgageSection.style.display = 'block';
+    mortgageList.innerHTML = '<div style="color:#888;text-align:center;padding:20px">No properties available to mortgage.</div>';
+  } else {
+    mortgageSection.style.display = 'none';
+  }
+  
+  // Update button states
+  document.getElementById('endGameRepayBtn').disabled = !canPay;
+  document.getElementById('endGameRepayBtn').style.opacity = canPay ? '1' : '0.5';
+  
+  openM('mEndGameLoan');
+}
+
+function endGameMortgageProperty(cellId) {
+  socket.emit('endGameMortgageForLoan', cellId);
+}
+
+function endGameRepayLoan() {
+  socket.emit('endGameRepayLoan');
+  closeM('mEndGameLoan');
+}
+
+function endGameSkipRepayment() {
+  if (confirm('Are you sure you want to forfeit? You will win with your remaining debt unpaid.')) {
+    socket.emit('endGameSkipLoanRepayment');
+    closeM('mEndGameLoan');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HOST END GAME VOTING SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function openHostEndGame() {
+  if (!gs || gs.hostId !== userId) {
+    showNotif('Only the host can end the game!');
+    return;
+  }
+  
+  // If playing with robots, end game immediately without vote
+  if (gs.isRobotGame) {
+    socket.emit('endGameByNetWorthImmediate');
+  } else {
+    // Playing with friends - show vote modal
+    openM('mHostEndGame');
+  }
+}
+
+function initiateEndGameVote() {
+  socket.emit('initiateEndGameVote');
+  closeM('mHostEndGame');
+}
+
+function voteEndGame(vote) {
+  socket.emit('endGameVote', vote);
+  document.getElementById('endGameVoteBtns').style.display = 'none';
+  document.getElementById('endGameVoteWaiting').style.display = 'block';
+}
+
+function updateEndGameVoteUI(voteState) {
+  if (!voteState) return;
+  
+  const statusDiv = document.getElementById('endGameVoteStatus');
+  const initiator = gs?.players.find(p => p.id === voteState.initiatorId);
+  
+  document.getElementById('endGameVoteInitiator').innerHTML = `
+    <b style="color:${initiator?.color || '#e91e8c'}">${initiator?.name || 'Host'}</b> has proposed to end the game!
+  `;
+  
+  const totalPlayers = voteState.totalPlayers;
+  const yesVotes = voteState.yesVotes;
+  const noVotes = voteState.noVotes;
+  const votedCount = yesVotes + noVotes;
+  const required = Math.ceil(totalPlayers / 2); // Majority needed
+  
+  statusDiv.innerHTML = `
+    <div style="display:flex;justify-content:space-around;margin-bottom:12px">
+      <div style="text-align:center">
+        <div style="font-size:28px;color:#27ae60">${yesVotes}</div>
+        <div style="font-size:11px;color:#aaa">Yes Votes</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:28px;color:#c62828">${noVotes}</div>
+        <div style="font-size:11px;color:#aaa">No Votes</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:#888;text-align:center">
+      ${votedCount}/${totalPlayers} players voted | Need ${required} "Yes" votes to end
+    </div>
+  `;
+  
+  // Check if I have already voted
+  if (voteState.voted?.includes(userId)) {
+    document.getElementById('endGameVoteBtns').style.display = 'none';
+    document.getElementById('endGameVoteWaiting').style.display = 'block';
+  } else {
+    document.getElementById('endGameVoteBtns').style.display = 'flex';
+    document.getElementById('endGameVoteWaiting').style.display = 'none';
+  }
+  
+  openM('mEndGameVote');
+}
+
+// Socket listeners for End Game Vote
+socket.on('endGameVoteStarted', (voteState) => {
+  updateEndGameVoteUI(voteState);
+  playSound('turn');
+  showNotif('🗳️ End Game Vote has started!');
+});
+
+socket.on('endGameVoteUpdate', (voteState) => {
+  updateEndGameVoteUI(voteState);
+});
+
+socket.on('endGameVotePassed', (data) => {
+  closeM('mEndGameVote');
+  playSound('win');
+  showNotif('✅ Vote passed! Game ending...');
+});
+
+socket.on('endGameVoteFailed', () => {
+  closeM('mEndGameVote');
+  playSound('pay');
+  showNotif('❌ Vote failed. Game continues!');
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BUILDING COSTS MODAL
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function openBuildingCosts() {
+  if (!gs) return;
+  
+  const GRP_COLORS = {brown:'#795548',lblue:'#29b6f6',pink:'#f06292',orange:'#ff7043',red:'#ef5350',yellow:'#fdd835',green:'#66bb6a',dblue:'#1565c0'};
+  const GRP_NAMES = {brown:'Brown',lblue:'Light Blue',pink:'Pink',orange:'Orange',red:'Red',yellow:'Yellow',green:'Green',dblue:'Dark Blue'};
+  
+  // Get unique color groups from properties
+  const colorGroups = {};
+  gs.cells.filter(c => c.t === 'prop' && c.g).forEach(c => {
+    if (!colorGroups[c.g]) {
+      colorGroups[c.g] = {
+        color: GRP_COLORS[c.g] || '#666',
+        name: GRP_NAMES[c.g] || c.g,
+        properties: []
+      };
+    }
+    colorGroups[c.g].properties.push(c);
+  });
+  
+  const listDiv = document.getElementById('buildingCostsList');
+  listDiv.innerHTML = Object.entries(colorGroups).map(([group, data]) => {
+    const propsHtml = data.properties.map(c => {
+      const houseCost = Math.floor(c.price * 0.5);
+      return `
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #333;font-size:13px">
+          <span style="color:#fff">[${c.id}] ${c.name}</span>
+          <span style="color:#27ae60;font-weight:700">Rs.${houseCost.toLocaleString()}</span>
+        </div>
+      `;
+    }).join('');
+    
+    return `
+      <div style="margin-bottom:16px;background:#2a2a2a;border-radius:10px;overflow:hidden">
+        <div style="background:${data.color};padding:10px;text-align:center">
+          <span style="font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.5)">${data.name} Properties</span>
+        </div>
+        <div style="padding:12px">
+          <div style="font-size:11px;color:#888;margin-bottom:8px;text-align:center">🏠 House / 🏨 Hotel Cost per City</div>
+          ${propsHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  openM('mBuildingCosts');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// GAME TIMER SYSTEM
+// ═══════════════════════════════════════════════════════════════════════════════
+
+let gameTimerInterval = null;
+let selectedExtendDuration = 1;
+
+function selectExtendDuration(hours, el) {
+  selectedExtendDuration = hours;
+  document.querySelectorAll('#extendDurationSelect .dur-opt').forEach(opt => opt.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function updateGameTimer(state) {
+  const timerPanel = document.getElementById('gameTimerPanel');
+  const timerDisplay = document.getElementById('gameTimerDisplay');
+  const timerFill = document.getElementById('gameTimerFill');
+  
+  if (!state.gameEndTime || state.phase !== 'playing') {
+    timerPanel.style.display = 'none';
+    return;
+  }
+  
+  timerPanel.style.display = 'block';
+  
+  const now = Date.now();
+  const remaining = Math.max(0, state.gameEndTime - now);
+  const totalDuration = state.gameDuration * 60 * 60 * 1000;
+  
+  // Format time
+  const hours = Math.floor(remaining / (1000 * 60 * 60));
+  const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+  
+  timerDisplay.textContent = `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+  
+  // Update fill bar
+  const pct = (remaining / totalDuration) * 100;
+  timerFill.style.width = Math.min(100, pct) + '%';
+  
+  // Change color when time is low
+  if (remaining < 5 * 60 * 1000) { // Less than 5 minutes
+    timerDisplay.style.color = '#e74c3c';
+    timerFill.classList.add('urgent');
+  } else if (remaining < 15 * 60 * 1000) { // Less than 15 minutes
+    timerDisplay.style.color = '#f1c40f';
+    timerFill.classList.remove('urgent');
+  } else {
+    timerDisplay.style.color = '#fff';
+    timerFill.classList.remove('urgent');
+  }
+}
+
+function startGameTimerTick() {
+  clearInterval(gameTimerInterval);
+  gameTimerInterval = setInterval(() => {
+    if (gs) updateGameTimer(gs);
+  }, 1000);
+}
+
+function extendGameTime() {
+  socket.emit('extendGameTime', selectedExtendDuration);
+  closeM('mTimeExpired');
+}
+
+function endGameNow() {
+  socket.emit('endGameByTime');
+  closeM('mTimeExpired');
+}
+
+// Socket listener for time expired
+socket.on('gameTimeExpired', () => {
+  if (gs && gs.hostId === userId) {
+    playSound('turn');
+    openM('mTimeExpired');
+  } else {
+    showNotif('⏰ Game time has expired! Waiting for host...');
+  }
+});
+
+socket.on('gameTimeExtended', (data) => {
+  playSound('collect');
+  showNotif(`⏱️ Game extended by ${data.hours} hour(s)!`);
+  closeM('mTimeExpired');
+});
+</script>
+</body>
+</html>

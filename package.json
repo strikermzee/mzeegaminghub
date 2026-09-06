@@ -1,0 +1,41 @@
+{
+  "name": "mzee-gaming-hub",
+  "version": "2.0.0",
+  "description": "MZeeGamingHub - one site, every game. Common login, categories, admin panel.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build:tambola": "node scripts/build-tambola.js",
+    "setup": "npm install && npm run build",
+    "test": "node scripts/test-hub.js",
+    "build:ludo": "node scripts/build-ludo.js",
+    "build": "npm run build:tambola && npm run build:ludo"
+  },
+  "keywords": [
+    "gaming",
+    "games",
+    "online-games",
+    "free-games",
+    "hub"
+  ],
+  "author": "MZEE Gaming",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "socket.io": "^4.7.4",
+    "sql.js": "^1.10.0",
+    "uuid": "^9.0.0",
+    "ws": "^8.16.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.7.4"
+  }
+}

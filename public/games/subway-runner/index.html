@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MZEE Runners</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="game">
+    <canvas id="scene"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div class="hud-top">
+        <div class="hud-pill">
+          <span class="hud-label">SCORE</span>
+          <span id="score">0</span>
+        </div>
+        <div class="hud-pill stage-pill">
+          <span class="hud-label">STAGE</span>
+          <span id="stage">1</span>
+        </div>
+        <div class="hud-pill coin-pill">
+          <span class="coin-dot"></span>
+          <span id="coins">0</span>
+        </div>
+        <button id="mute" class="mute-btn" title="Mute / unmute">&#128266;</button>
+      </div>
+      <div id="stage-banner" class="hidden"></div>
+    </div>
+
+    <!-- Start screen -->
+    <div id="start" class="overlay">
+      <img id="avatar" class="avatar" src="assets/player.jpg" alt="" onerror="this.style.display='none'" />
+      <h1>MZEE<span>RUNNERS</span></h1>
+      <p class="tagline">Dodge the trains. Grab the coins. Don't stop.</p>
+      <button id="play-btn" class="btn">PLAY</button>
+      <div class="controls">
+        <div><kbd>&larr;</kbd><kbd>&rarr;</kbd> Move</div>
+        <div><kbd>&uarr;</kbd> / <kbd>Space</kbd> Jump (tap 2&times; = double jump)</div>
+        <div><kbd>&darr;</kbd> Slide</div>
+        <div class="muted">or swipe on touch</div>
+      </div>
+    </div>
+
+    <!-- Game over screen -->
+    <div id="gameover" class="overlay hidden">
+      <img class="avatar avatar-sm" src="assets/player.jpg" alt="" onerror="this.style.display='none'" />
+      <h2>GAME OVER</h2>
+      <div class="result">
+        <div><span class="result-label">Score</span><span id="final-score">0</span></div>
+        <div><span class="result-label">Coins</span><span id="final-coins">0</span></div>
+        <div><span class="result-label">Best</span><span id="best-score">0</span></div>
+      </div>
+      <button id="retry-btn" class="btn">RETRY</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
