@@ -6,8 +6,12 @@ services:
     name: mzee-gaming-hub
     env: node
     plan: free
-    # Tambola is a React app: it must be built before the server can serve it.
-    buildCommand: npm install && npm run build:tambola
+    # The React games (Tambola, Ludo) are committed already built, under
+    # public/games/. Render only needs the server's own dependencies — rebuilding
+    # them here would pull ~1,300 extra packages for no gain.
+    # If you ever strip the build output from the repo, use:
+    #   npm install && npm run build
+    buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /health
     envVars:
@@ -17,9 +21,14 @@ services:
         generateValue: true      # signs sessions AND the tokens the games trust
       - key: ADMIN_PASSWORD
         sync: false              # set this yourself; never ship the default
-    disk:
-      # Accounts, games, categories and analytics live here. Without a persistent
-      # disk the database is wiped on every deploy.
-      name: hub-data
-      mountPath: /opt/render/project/src/data
-      sizeGB: 1
+    # NOTE ON DATA
+    # Render's free plan has no persistent disk, so data/hub.db — accounts, play
+    # counts, categories, analytics — is wiped on every deploy and on the restart
+    # that follows each idle spin-down.
+    #
+    # To keep data, move to a paid instance and uncomment:
+    #
+    # disk:
+    #   name: hub-data
+    #   mountPath: /opt/render/project/src/data
+    #   sizeGB: 1
